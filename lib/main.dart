@@ -2,8 +2,14 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'home_page.dart';
+import 'models/card.dart';
+import 'models/hand_rank.dart';
+import 'models/player.dart';
+import 'models/score_system.dart';
 
 enum Suit { spades, hearts, diamonds, clubs }
+
+enum Position { dealer, smallBlind, bigBlind, underTheGun, hijack, cutoff }
 
 enum Rank {
   two,
@@ -28,28 +34,40 @@ class Card {
   Card(this.rank, this.suit);
 
   static Card fromString(String cardStr) {
+    if (cardStr.length < 2) {
+      throw Exception('Invalid card string length');
+    }
+
     final rankStr = cardStr.substring(0, cardStr.length - 1);
     final suitStr = cardStr.substring(cardStr.length - 1);
 
     Rank rank;
-    switch (rankStr) {
-      case 'A':
-        rank = Rank.ace;
-        break;
-      case 'K':
-        rank = Rank.king;
-        break;
-      case 'Q':
-        rank = Rank.queen;
-        break;
-      case 'J':
-        rank = Rank.jack;
-        break;
-      case '10':
-        rank = Rank.ten;
-        break;
-      default:
-        rank = Rank.values[int.parse(rankStr) - 2];
+    try {
+      switch (rankStr) {
+        case 'A':
+          rank = Rank.ace;
+          break;
+        case 'K':
+          rank = Rank.king;
+          break;
+        case 'Q':
+          rank = Rank.queen;
+          break;
+        case 'J':
+          rank = Rank.jack;
+          break;
+        case '10':
+          rank = Rank.ten;
+          break;
+        default:
+          final rankValue = int.parse(rankStr);
+          if (rankValue < 2 || rankValue > 9) {
+            throw Exception('Invalid rank value');
+          }
+          rank = Rank.values[rankValue - 2];
+      }
+    } catch (e) {
+      throw Exception('Invalid rank format');
     }
 
     Suit suit;
@@ -151,14 +169,22 @@ class HandRank {
 
   static int _getTwoPairRank(List<Card> cards) {
     var ranks = cards.map((c) => c.rank).toList();
-    int highestPairRank = 0;
+    List<int> pairRanks = [];
+    
+    // 모든 페어 찾기
     for (var rank in Rank.values.reversed) {
       if (ranks.where((r) => r == rank).length == 2) {
-        highestPairRank = rank.index;
-        break;
+        pairRanks.add(rank.index);
       }
     }
-    return highestPairRank;
+    
+    // 두 개의 페어가 있는 경우
+    if (pairRanks.length >= 2) {
+      // 가장 높은 페어의 랭크를 반환
+      return pairRanks[0];
+    }
+    
+    return 0;
   }
 
   static int _getThreeOfAKindRank(List<Card> cards) {
@@ -231,43 +257,26 @@ class HandRank {
       ..sort((a, b) => a.rank.index.compareTo(b.rank.index));
     var ranks = sortedCards.map((c) => c.rank.index).toList();
 
-    // 일반적인 스트레이트 체크 (예: 45678)
+    // 일반적인 스트레이트 체크
     bool isNormalStraight = true;
-    for (int i = 0; i < ranks.length - 1; i++) {
-      if (ranks[i + 1] - ranks[i] != 1) {
+    for (int i = 1; i < ranks.length; i++) {
+      if (ranks[i] != ranks[i - 1] + 1) {
         isNormalStraight = false;
         break;
       }
     }
-    if (isNormalStraight) return true;
 
-    // A2345 스트레이트 체크
-    if (ranks.contains(Rank.ace.index)) {
-      var lowStraight = [
-        Rank.two.index,
-        Rank.three.index,
-        Rank.four.index,
-        Rank.five.index
-      ];
-      var containsLowStraight =
-          lowStraight.every((rank) => ranks.contains(rank));
-      if (containsLowStraight) return true;
+    // A-2-3-4-5 스트레이트 체크
+    bool isWheelStraight = false;
+    if (ranks.contains(Rank.ace.index) &&
+        ranks.contains(Rank.two.index) &&
+        ranks.contains(Rank.three.index) &&
+        ranks.contains(Rank.four.index) &&
+        ranks.contains(Rank.five.index)) {
+      isWheelStraight = true;
     }
 
-    // TJQKA 스트레이트 체크
-    if (ranks.contains(Rank.ace.index)) {
-      var highStraight = [
-        Rank.ten.index,
-        Rank.jack.index,
-        Rank.queen.index,
-        Rank.king.index
-      ];
-      var containsHighStraight =
-          highStraight.every((rank) => ranks.contains(rank));
-      if (containsHighStraight) return true;
-    }
-
-    return false;
+    return isNormalStraight || isWheelStraight;
   }
 
   static bool _isThreeOfAKind(List<Card> cards) {
@@ -303,11 +312,13 @@ class Player {
   bool isFolded;
   bool isAllIn;
   int bet;
+  Position position;
 
   Player({
     required this.name,
     required this.chips,
     required this.hand,
+    required this.position,
     this.isFolded = false,
     this.isAllIn = false,
     this.bet = 0,
@@ -619,6 +630,7 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
         // 500부터 500,000까지 100단위로 랜덤 스택 설정
         chips: (random.nextInt(4996) * 100) + 500,
         hand: [],
+        position: Position.values[index % Position.values.length],
       ),
     );
   }
@@ -1086,6 +1098,7 @@ class _PokerTablePageState extends State<PokerTablePage> {
         name: 'Player ${index + 1}',
         chips: (random.nextInt(599) * 500) + 500, // 500~300,000
         hand: [],
+        position: Position.values[index % Position.values.length],
       ),
     );
     playerActions = List.filled(numberOfPlayers, null);
@@ -1484,3 +1497,4 @@ class _PokerTablePageState extends State<PokerTablePage> {
     );
   }
 }
+

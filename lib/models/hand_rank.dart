@@ -52,7 +52,7 @@ class HandRank {
   }
 
   static int _getHighestRank(List<poker.Card> cards) {
-    return cards.map((c) => c.rank.index).reduce(max);
+    return cards.map((c) => c.rank.index).reduce((a, b) => a > b ? a : b);
   }
 
   static int _getOnePairRank(List<poker.Card> cards) {
