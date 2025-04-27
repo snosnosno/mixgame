@@ -184,8 +184,8 @@ class _PotLimitPageState extends State<PotLimitPage> {
     } else {
       // 30% 확률로 "POT!" (항상 최대금액으로 베팅)
       int potLimit = bettingRound!.calculatePotLimit();
-      int allInAmount = chipsInitial[playerIndex] + player.bet;
-      int potBet = min(potLimit, allInAmount);
+      int allInAmount = players[playerIndex].chips + players[playerIndex].bet;
+      int potBet = potLimit >= allInAmount ? allInAmount : potLimit;
       potCorrectAnswer = potBet;
       print('Action: POT! | Player: ${player.name} | potLimit: \$${potLimit} | chips: \$${player.chips} | bet: \$${player.bet} | potBet: \$${potBet}');
       bettingRound!.performAction('raise', potBet);
@@ -459,18 +459,43 @@ class _PotLimitPageState extends State<PotLimitPage> {
                             ),
                           ],
                         ),
-                        child: TextField(
-                          controller: potGuessController,
-                          decoration: const InputDecoration(
-                            hintText: 'POT! 금액을 입력하세요',
-                            border: OutlineInputBorder(),
-                            filled: true,
-                            fillColor: Colors.white,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextField(
+                                controller: potGuessController,
+                                decoration: const InputDecoration(
+                                  hintText: 'POT! 금액을 입력하세요',
+                                  border: OutlineInputBorder(),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                ),
+                                keyboardType: TextInputType.number,
+                                onSubmitted: (value) {
+                                  checkPotGuess();
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  ),
+                                  onPressed: checkPotGuess,
+                                  child: const Text('정답 제출'),
+                                ),
+                              ),
+                            ],
                           ),
-                          keyboardType: TextInputType.number,
-                          onSubmitted: (value) {
-                            checkPotGuess();
-                          },
                         ),
                       ),
                     ),

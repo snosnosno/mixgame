@@ -636,38 +636,56 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
                 ),
               ),
             if (roundLogs.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Container(
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ListView.builder(
-                    reverse: true,
-                    itemCount: roundLogs.length,
-                    itemBuilder: (context, idx) {
-                      final log = roundLogs[roundLogs.length - 1 - idx];
-                      return InkWell(
-                        onTap: () {
-                          if (replayRounds.length > (roundLogs.length - 1 - idx)) {
-                            setState(() {
-                              replayingRound = replayRounds[roundLogs.length - 1 - idx];
-                            });
-                          }
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-                          child: Text(
-                            log,
-                            style: const TextStyle(color: Colors.white, fontSize: 14, decoration: TextDecoration.underline),
-                          ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        '↓↓복기해보기↓↓',
+                        style: TextStyle(
+                          color: Colors.amber,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
-                      );
-                    },
+                      ),
+                    ),
                   ),
-                ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Container(
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListView.builder(
+                        reverse: true,
+                        itemCount: roundLogs.length,
+                        itemBuilder: (context, idx) {
+                          final log = roundLogs[roundLogs.length - 1 - idx];
+                          return InkWell(
+                            onTap: () {
+                              if (replayRounds.length > (roundLogs.length - 1 - idx)) {
+                                setState(() {
+                                  replayingRound = replayRounds[roundLogs.length - 1 - idx];
+                                });
+                              }
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                              child: Text(
+                                log,
+                                style: const TextStyle(color: Colors.white, fontSize: 14, decoration: TextDecoration.underline),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
               ),
           ],
         ),

@@ -34,21 +34,29 @@ class BettingRound {
     // 현재 플레이어의 포지션을 찾음
     Position currentPosition = players[currentPlayerIndex].position;
     int currentOrderIdx = actionOrder.indexOf(currentPosition);
-    int nextOrderIdx = (currentOrderIdx + 1) % actionOrder.length;
+    
+    // 다음 플레이어를 찾는 로직
     for (int i = 0; i < players.length; i++) {
-      // 순서대로 다음 포지션을 가진 플레이어를 찾음
+      // 다음 포지션 순서 계산
+      int nextOrderIdx = (currentOrderIdx + 1 + i) % actionOrder.length;
       Position nextPosition = actionOrder[nextOrderIdx];
-      int foundIdx = players.indexWhere((p) => p.position == nextPosition && !p.isFolded && !p.isAllIn);
-      if (foundIdx != -1) {
-        currentPlayerIndex = foundIdx;
+      
+      // 해당 포지션을 가진 활성 플레이어 찾기
+      int nextPlayerIndex = players.indexWhere(
+        (p) => p.position == nextPosition && !p.isFolded && !p.isAllIn
+      );
+      
+      if (nextPlayerIndex != -1) {
+        currentPlayerIndex = nextPlayerIndex;
         return;
       }
-      nextOrderIdx = (nextOrderIdx + 1) % actionOrder.length;
     }
-    // 모두 폴드/올인일 경우 기존 방식 fallback
-    do {
-      currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-    } while (players[currentPlayerIndex].isFolded || players[currentPlayerIndex].isAllIn);
+    
+    // 모든 플레이어가 폴드/올인인 경우, 첫 번째 활성 플레이어를 찾음
+    int firstActiveIndex = players.indexWhere((p) => !p.isFolded && !p.isAllIn);
+    if (firstActiveIndex != -1) {
+      currentPlayerIndex = firstActiveIndex;
+    }
   }
 
   bool canCheck() {
@@ -64,8 +72,8 @@ class BettingRound {
     int totalBets = players.where((p) => !p.isFolded && p != currentPlayer).fold(0, (sum, p) => sum + p.bet);
     int lastBet = lastRaiseAmount;
     int potLimit = totalBets + (lastBet * 2);
-    // 현재 스트릿에서 이미 베팅한 금액 차감은 불필요 (이미 합산에서 제외됨)
-    return min(potLimit, currentPlayer.chips);
+    // chips + bet과 비교하여 더 작은 값 반환
+    return min(potLimit, currentPlayer.chips + currentPlayer.bet);
   }
 
   void performAction(String action, [int? amount]) {
