@@ -227,9 +227,9 @@ class _PotLimitPageState extends State<PotLimitPage> {
     setState(() {
       if (userGuess == correctPot) {
         currentScore++;
-        resultMessage = '정답입니다! +1점\n현재 점수: $currentScore점';
+        resultMessage = 'Correct! +1pt\nCurrent Score: $currentScore';
       } else {
-        resultMessage = '틀렸습니다!\n정답은: $correctPot';
+        resultMessage = 'Wrong!\nCorrect: $correctPot';
       }
       showNextGameButton = true;
       for (var p in players) {
@@ -302,268 +302,287 @@ class _PotLimitPageState extends State<PotLimitPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pot Limit 계산'),
+        title: const Text('Pot Limit Calculator'),
         centerTitle: true,
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final screenWidth = constraints.maxWidth;
-          final screenHeight = constraints.maxHeight;
-          return SingleChildScrollView(
-            child: SizedBox(
-              width: screenWidth,
-              height: screenHeight,
-              child: Stack(
-                children: [
-                  Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFF388E3C),
-                          Color(0xFF1B5E20),
-                          Color(0xFF43A047),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (isGameStarted)
-                    ...List.generate(numberOfPlayers, (index) {
-                      if (index >= players.length) {
-                        return Container();
-                      }
-                      final angle = (index * 60 - 90) * (3.14159 / 180);
-                      final radius = screenWidth * 0.35;
-                      final x = screenWidth / 2 + radius * cos(angle);
-                      final y = screenHeight * 0.48 + radius * sin(angle);
-
-                      return Positioned(
-                        left: x - 80,
-                        top: y - 80,
-                        child: Container(
-                          width: screenWidth < 500 ? 120 : 170,
-                          height: screenWidth < 500 ? 140 : 200,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.18),
-                            borderRadius: BorderRadius.circular(24),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.25),
-                                blurRadius: 16,
-                                offset: const Offset(0, 6),
-                              ),
+      body: Stack(
+        children: [
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final screenWidth = constraints.maxWidth;
+              final screenHeight = constraints.maxHeight;
+              return SingleChildScrollView(
+                child: SizedBox(
+                  width: screenWidth,
+                  height: screenHeight,
+                  child: Stack(
+                    children: [
+                      Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFF388E3C),
+                              Color(0xFF1B5E20),
+                              Color(0xFF43A047),
                             ],
-                            border: Border.all(
-                              color: index == 0
-                                  ? Colors.yellowAccent
-                                  : index == 1
-                                      ? Colors.redAccent
-                                      : Colors.white.withOpacity(0.25),
-                              width: index == 0 || index == 1 ? 2.5 : 1.2,
-                            ),
                           ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Player ${index + 1}',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: screenWidth < 500 ? 14 : 20,
-                                  fontWeight: FontWeight.w900,
-                                  fontFamily: 'Montserrat',
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                players[index].positionName,
-                                style: TextStyle(
-                                  color: Colors.amber,
-                                  fontSize: screenWidth < 500 ? 11 : 15,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'chips: ${chipsInitial[index]}',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: screenWidth < 500 ? 12 : 17,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'RobotoMono',
-                                ),
-                              ),
-                              if (players[index].isAllIn)
-                                Container(
-                                  margin: const EdgeInsets.only(top: 8),
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                  decoration: BoxDecoration(
-                                    color: Colors.yellow.withOpacity(0.8),
-                                    borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      if (isGameStarted)
+                        ...List.generate(numberOfPlayers, (index) {
+                          if (index >= players.length) {
+                            return Container();
+                          }
+                          final angle = (index * 60 - 90) * (3.14159 / 180);
+                          final radius = screenWidth * 0.35;
+                          final x = screenWidth / 2 + radius * cos(angle);
+                          final y = (screenHeight * 0.18) + radius * sin(angle) * 0.55;
+
+                          final boxW = screenWidth < 500 ? 126 : 196;
+                          final boxH = screenWidth < 500 ? 140 : 196;
+                          final angleOffset = numberOfPlayers == 5 ? 90 : 90;
+                          final adjAngle = (index * (360 / numberOfPlayers) + angleOffset) * (3.14159 / 180);
+                          final adjRadius = radius * 1.15;
+                          final adjX = screenWidth / 2 + adjRadius * cos(adjAngle);
+                          final adjY = (screenHeight * 0.3) + adjRadius * sin(adjAngle) * 0.9;
+
+                          return Positioned(
+                            left: adjX - boxW / 2,
+                            top: adjY - boxH / 2,
+                            child: Container(
+                              width: boxW.toDouble(),
+                              height: boxH.toDouble(),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.10),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.18),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
                                   ),
-                                  child: const Text(
-                                    'ALL-IN',
+                                ],
+                                border: Border.all(
+                                  color: Colors.transparent,
+                                  width: 0,
+                                ),
+                              ),
+                              child: SingleChildScrollView(
+                                physics: const NeverScrollableScrollPhysics(),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      players[index].positionName,
+                                      style: TextStyle(
+                                        color: Colors.amber,
+                                        fontSize: screenWidth < 500 ? 14 : 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      chipsInitial[index].toString(),
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: screenWidth < 500 ? 16 : 21,
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'RobotoMono',
+                                      ),
+                                    ),
+                                    if (players[index].isAllIn)
+                                      Container(
+                                        margin: const EdgeInsets.only(top: 8),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                        decoration: BoxDecoration(
+                                          color: Colors.yellow.withOpacity(0.8),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: const Text(
+                                          'ALL-IN',
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    if (playerActionHistory[index].isNotEmpty)
+                                      Container(
+                                        margin: const EdgeInsets.only(top: 8),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withOpacity(0.35),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Column(
+                                          children: playerActionHistory[index].map((action) {
+                                            return Text(
+                                              action,
+                                              style: TextStyle(
+                                                color: action.contains('FOLD')
+                                                    ? Colors.redAccent
+                                                    : action.contains('POT!')
+                                                        ? Colors.amber
+                                                        : Colors.lightGreenAccent,
+                                                fontSize: screenWidth < 500 ? 11 : 14,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      if (isPotGuessing)
+                        Positioned(
+                          left: MediaQuery.of(context).size.width / 2 - 150,
+                          top: MediaQuery.of(context).size.height * 0.7,
+                          child: Container(
+                            width: 300,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 6,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  TextField(
+                                    controller: potGuessController,
+                                    decoration: const InputDecoration(
+                                      hintText: 'POT! amount to enter',
+                                      border: InputBorder.none,
+                                      filled: true,
+                                      fillColor: Colors.transparent,
+                                    ),
                                     style: TextStyle(
                                       color: Colors.black,
-                                      fontSize: 15,
                                       fontWeight: FontWeight.bold,
+                                      fontSize: 18,
                                     ),
+                                    keyboardType: TextInputType.number,
+                                    onSubmitted: (value) {
+                                      checkPotGuess();
+                                    },
                                   ),
-                                ),
-                              if (playerActionHistory[index].isNotEmpty)
-                                Container(
-                                  margin: const EdgeInsets.only(top: 8),
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.35),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Column(
-                                    children: playerActionHistory[index].map((action) {
-                                      return Text(
-                                        action,
-                                        style: TextStyle(
-                                          color: action.contains('FOLD')
-                                              ? Colors.redAccent
-                                              : action.contains('POT!')
-                                                  ? Colors.amber
-                                                  : Colors.lightGreenAccent,
-                                          fontSize: screenWidth < 500 ? 10 : 13,
-                                          fontWeight: FontWeight.bold,
+                                  const SizedBox(height: 10),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.green,
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8),
                                         ),
-                                      );
-                                    }).toList(),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }),
-                  if (isPotGuessing)
-                    Positioned(
-                      left: MediaQuery.of(context).size.width / 2 - 150,
-                      top: MediaQuery.of(context).size.height / 2 - 30,
-                      child: Container(
-                        width: 300,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextField(
-                                controller: potGuessController,
-                                decoration: const InputDecoration(
-                                  hintText: 'POT! 금액을 입력하세요',
-                                  border: OutlineInputBorder(),
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                ),
-                                keyboardType: TextInputType.number,
-                                onSubmitted: (value) {
-                                  checkPotGuess();
-                                },
-                              ),
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                                      ),
+                                      onPressed: checkPotGuess,
+                                      child: const Text('Submit'),
                                     ),
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                   ),
-                                  onPressed: checkPotGuess,
-                                  child: const Text('정답 제출'),
-                                ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (!isGameStarted)
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.65,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurpleAccent,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18),
                             ),
-                            elevation: 8,
-                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
-                            textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          onPressed: startNewGame,
-                          child: const Text('게임 시작'),
-                        ),
-                      ),
-                    ),
-                  if (resultMessage.isNotEmpty)
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.25,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: Text(
-                          resultMessage,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                    ),
-                  if (showNextGameButton)
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.65,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurpleAccent,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18),
+                      if (!isGameStarted)
+                        Positioned(
+                          top: MediaQuery.of(context).size.height * 0.65,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.deepPurpleAccent,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                                elevation: 8,
+                                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+                                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              onPressed: startNewGame,
+                              child: const Text('Start Game'),
                             ),
-                            elevation: 8,
-                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
-                            textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
-                          onPressed: startNewGame,
-                          child: const Text('다음 게임 시작'),
                         ),
-                      ),
-                    ),
-                ],
+                      if (resultMessage.isNotEmpty)
+                        Positioned(
+                          top: MediaQuery.of(context).size.height * 0.25,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: Text(
+                              resultMessage,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (showNextGameButton)
+                        Positioned(
+                          top: MediaQuery.of(context).size.height * 0.6,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.deepPurpleAccent,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                                elevation: 8,
+                                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+                                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              onPressed: startNewGame,
+                              child: const Text('Next Game'),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+          Positioned(
+            right: 16,
+            bottom: 12,
+            child: Text(
+              'made by SNO',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.7),
+                fontSize: 17,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 1.2,
               ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }

@@ -366,13 +366,29 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
     return card.replaceAll('10', '0');
   }
 
-  Widget buildCardImage(String card) {
+  Widget buildOverlappedCards(List<String> cards, double cardWidth, double cardHeight, double overlapRatio) {
+    return SizedBox(
+      width: cardWidth + (cards.length - 1) * cardWidth * overlapRatio,
+      height: cardHeight,
+      child: Stack(
+        children: [
+          for (int i = 0; i < cards.length; i++)
+            Positioned(
+              left: i * cardWidth * overlapRatio,
+              child: buildCardImageWithSize(cards[i], cardWidth, cardHeight),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildCardImageWithSize(String card, double width, double height) {
     return Padding(
-      padding: const EdgeInsets.all(2.0),
+      padding: const EdgeInsets.all(1.0),
       child: Image.network(
         'https://deckofcardsapi.com/static/img/${convertCard(card)}.png',
-        width: 50,
-        height: 70,
+        width: width,
+        height: height,
         fit: BoxFit.contain,
       ),
     );
@@ -380,25 +396,36 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
 
   @override
   Widget build(BuildContext context) {
-    int crossAxisCount = 1;
-    double aspectRatio = 1.8;
-    if (numberOfPlayers == 4) {
-      crossAxisCount = 2;
-      aspectRatio = 1.1;
-    } else if (numberOfPlayers == 5 || numberOfPlayers == 6) {
-      crossAxisCount = 3;
-      aspectRatio = 0.95;
-    } else if (numberOfPlayers == 3) {
-      crossAxisCount = 3;
-      aspectRatio = 1.5;
-    } else if (numberOfPlayers == 2) {
-      crossAxisCount = 2;
-      aspectRatio = 1.5;
+    // 화면 크기에 따라 카드 크기와 겹침 비율 동적 계산
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    // 그리드 설정
+    int crossAxisCount = 2;
+    double aspectRatio = isMobile ? 1.35 : 1.9;
+    if (numberOfPlayers <= 4) {
+      crossAxisCount = 2; // 2x2
+      aspectRatio = isMobile ? 1.35 : 1.9;
+    } else {
+      crossAxisCount = 2; // 2x3
+      aspectRatio = isMobile ? 1.35 : 1.75;
     }
+    // 셀 가로폭 계산
+    double horizontalPadding = 16 * 2; // GridView 좌우 패딩
+    double crossAxisSpacing = 16.0;
+    double cellWidth = (screenWidth - horizontalPadding - (crossAxisCount - 1) * crossAxisSpacing) / crossAxisCount;
+    // 카드 겹침 비율
+    double overlapRatio = 0.5;
+    int cardCount = 4;
+    // 카드 크기 계산 (겹침 포함 최대)
+    double cardWidth = cellWidth / (1 + (cardCount - 1) * overlapRatio);
+    double cardHeight = cardWidth * 1.4;
+    // 모바일에서 너무 크면 제한
+    if (isMobile && cardWidth > 60) cardWidth = 60;
+    if (isMobile && cardHeight > 84) cardHeight = 84;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('승자 맞추기 게임'),
+        title: const Text('Winner Guessing Game'),
         centerTitle: true,
         backgroundColor: const Color(0xFF388E3C),
         elevation: 0,
@@ -421,274 +448,289 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
           },
         ),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF388E3C),
-              Color(0xFF1B5E20),
-              Color(0xFF43A047),
-            ],
-          ),
-        ),
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('플레이어 수: ', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                DropdownButton<int>(
-                  value: numberOfPlayers,
-                  dropdownColor: const Color(0xFF2E7D32),
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  items: [2, 3, 4, 5, 6].map((int value) {
-                    return DropdownMenuItem<int>(
-                      value: value,
-                      child: Text('$value'),
-                    );
-                  }).toList(),
-                  onChanged: !isGameStarted
-                      ? (int? newValue) {
-                          if (newValue != null) {
-                            setState(() {
-                              numberOfPlayers = newValue;
-                              initializePlayers();
-                            });
-                          }
-                        }
-                      : null,
-                ),
-              ],
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF388E3C),
+                  Color(0xFF1B5E20),
+                  Color(0xFF43A047),
+                ],
+              ),
             ),
-            if (isGameStarted)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-                child: Text(
-                  '남은 시간: $remainingTime초',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: remainingTime <= 10 ? Colors.redAccent : Colors.white,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black.withOpacity(0.3),
-                        offset: const Offset(1, 1),
-                        blurRadius: 2,
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Number of Players: ', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    DropdownButton<int>(
+                      value: numberOfPlayers,
+                      dropdownColor: const Color(0xFF2E7D32),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      items: [2, 3, 4, 5, 6].map((int value) {
+                        return DropdownMenuItem<int>(
+                          value: value,
+                          child: Text('$value'),
+                        );
+                      }).toList(),
+                      onChanged: !isGameStarted
+                          ? (int? newValue) {
+                              if (newValue != null) {
+                                setState(() {
+                                  numberOfPlayers = newValue;
+                                  initializePlayers();
+                                });
+                              }
+                            }
+                          : null,
+                    ),
+                  ],
+                ),
+                if (isGameStarted)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                    child: Text(
+                      'Time Left: $remainingTime s',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: remainingTime <= 10 ? Colors.redAccent : Colors.white,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withOpacity(0.3),
+                            offset: const Offset(1, 1),
+                            blurRadius: 2,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                if (isGameStarted || replayingRound != null) ...[
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8.0, bottom: 4.0),
+                    child: Text(
+                      'Community Cards',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.amber),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: (replayingRound != null
+                        ? replayingRound!.communityCards
+                        : communityCards)
+                        .map((card) => buildOverlappedCards([card], cardWidth, cardHeight, overlapRatio)).toList(),
+                  ),
+                  const SizedBox(height: 8),
+                  Flexible(
+                    fit: FlexFit.loose,
+                    child: GridView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        childAspectRatio: aspectRatio,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 4,
+                      ),
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: replayingRound?.numberOfPlayers ?? numberOfPlayers,
+                      itemBuilder: (context, index) {
+                        final isReplay = replayingRound != null;
+                        final hands = isReplay
+                            ? replayingRound!.playerHands
+                            : players.map((p) => p.hand).toList();
+                        final selIdx = isReplay
+                            ? replayingRound!.selectedWinnerIndex
+                            : selectedWinnerIndex;
+                        final cardWidget = AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeInOut,
+                          decoration: BoxDecoration(
+                            color: selIdx == index
+                                ? Colors.deepPurpleAccent.withOpacity(0.18)
+                                : Colors.white.withOpacity(0.13),
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.18),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                            border: Border.all(
+                              color: selIdx == index
+                                  ? Colors.deepPurpleAccent
+                                  : Colors.white.withOpacity(0.18),
+                              width: selIdx == index ? 2.5 : 1.2,
+                            ),
+                          ),
+                          padding: const EdgeInsets.all(2),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Player ${index + 1}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  fontFamily: 'Montserrat',
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              buildOverlappedCards(hands[index], cardWidth, cardHeight, overlapRatio),
+                            ],
+                          ),
+                        );
+                        if (!isReplay) {
+                          return GestureDetector(
+                            onTap: () => selectWinner(index),
+                            child: cardWidget,
+                          );
+                        } else {
+                          return cardWidget;
+                        }
+                      },
+                    ),
+                  ),
+                  if (replayingRound != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurpleAccent,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          elevation: 6,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            replayingRound = null;
+                          });
+                        },
+                        icon: const Icon(Icons.exit_to_app),
+                        label: const Text('복기 종료 (현재 라운드로 돌아가기)'),
+                      ),
+                    ),
+                ],
+                if (!isGameStarted && replayingRound == null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 24.0, bottom: 12.0),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepPurpleAccent,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        elevation: 8,
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+                        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      onPressed: startNewGame,
+                      child: const Text('Start Game'),
+                    ),
+                  ),
+                if (winnerText.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        winnerText,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: selectedWinnerIndex == actualWinnerIndex
+                              ? Colors.greenAccent
+                              : Colors.redAccent,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                if (roundLogs.isNotEmpty)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.only(bottom: 4),
+                          child: Text(
+                            '↓↓Review↓↓',
+                            style: TextStyle(
+                              color: Colors.amber,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        child: Container(
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ListView.builder(
+                            reverse: true,
+                            itemCount: roundLogs.length,
+                            itemBuilder: (context, idx) {
+                              final log = roundLogs[roundLogs.length - 1 - idx];
+                              return InkWell(
+                                onTap: () {
+                                  if (replayRounds.length > (roundLogs.length - 1 - idx)) {
+                                    setState(() {
+                                      replayingRound = replayRounds[roundLogs.length - 1 - idx];
+                                    });
+                                  }
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                                  child: Text(
+                                    log,
+                                    style: const TextStyle(color: Colors.white, fontSize: 14, decoration: TextDecoration.underline),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                ),
+              ],
+            ),
+          ),
+          Positioned(
+            right: 16,
+            bottom: 12,
+            child: Text(
+              'made by SNO',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.7),
+                fontSize: 17,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 1.2,
               ),
-            if (isGameStarted || replayingRound != null) ...[
-              const Padding(
-                padding: EdgeInsets.only(top: 8.0, bottom: 4.0),
-                child: Text(
-                  '커뮤니티 카드',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.amber),
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: (replayingRound != null
-                    ? replayingRound!.communityCards
-                    : communityCards)
-                    .map((card) => buildCardImage(card)).toList(),
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: GridView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    childAspectRatio: aspectRatio,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                  ),
-                  itemCount: replayingRound?.numberOfPlayers ?? numberOfPlayers,
-                  itemBuilder: (context, index) {
-                    final isReplay = replayingRound != null;
-                    final hands = isReplay
-                        ? replayingRound!.playerHands
-                        : players.map((p) => p.hand).toList();
-                    final selIdx = isReplay
-                        ? replayingRound!.selectedWinnerIndex
-                        : selectedWinnerIndex;
-                    final cardWidget = AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeInOut,
-                      decoration: BoxDecoration(
-                        color: selIdx == index
-                            ? Colors.deepPurpleAccent.withOpacity(0.18)
-                            : Colors.white.withOpacity(0.13),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.18),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                        border: Border.all(
-                          color: selIdx == index
-                              ? Colors.deepPurpleAccent
-                              : Colors.white.withOpacity(0.18),
-                          width: selIdx == index ? 2.5 : 1.2,
-                        ),
-                      ),
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Player ${index + 1}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontFamily: 'Montserrat',
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: hands[index]
-                                .map((card) => buildCardImage(card))
-                                .toList(),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (!isReplay) {
-                      return GestureDetector(
-                        onTap: () => selectWinner(index),
-                        child: cardWidget,
-                      );
-                    } else {
-                      return cardWidget;
-                    }
-                  },
-                ),
-              ),
-              if (replayingRound != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurpleAccent,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      elevation: 6,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        replayingRound = null;
-                      });
-                    },
-                    icon: const Icon(Icons.exit_to_app),
-                    label: const Text('복기 종료 (현재 라운드로 돌아가기)'),
-                  ),
-                ),
-            ],
-            if (!isGameStarted && replayingRound == null)
-              Padding(
-                padding: const EdgeInsets.only(top: 24.0, bottom: 12.0),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurpleAccent,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    elevation: 8,
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
-                    textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  onPressed: startNewGame,
-                  child: const Text('게임 시작'),
-                ),
-              ),
-            if (winnerText.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    winnerText,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: selectedWinnerIndex == actualWinnerIndex
-                          ? Colors.greenAccent
-                          : Colors.redAccent,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-            if (roundLogs.isNotEmpty)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.only(bottom: 4),
-                      child: Text(
-                        '↓↓복기해보기↓↓',
-                        style: TextStyle(
-                          color: Colors.amber,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Container(
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ListView.builder(
-                        reverse: true,
-                        itemCount: roundLogs.length,
-                        itemBuilder: (context, idx) {
-                          final log = roundLogs[roundLogs.length - 1 - idx];
-                          return InkWell(
-                            onTap: () {
-                              if (replayRounds.length > (roundLogs.length - 1 - idx)) {
-                                setState(() {
-                                  replayingRound = replayRounds[roundLogs.length - 1 - idx];
-                                });
-                              }
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-                              child: Text(
-                                log,
-                                style: const TextStyle(color: Colors.white, fontSize: 14, decoration: TextDecoration.underline),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
