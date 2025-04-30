@@ -1,48 +1,65 @@
-# PLO 포커 게임
+# Mix Game
 
-포커 학습을 위한 두 가지 게임을 제공하는 Flutter 웹 애플리케이션입니다.
+플러터로 개발된 카드 게임 웹 애플리케이션입니다.
 
-## 게임 소개
+## 프로젝트 소개
 
-### 1. 승자 맞추기 게임
-- 2-6명의 플레이어 중에서 실제 승자를 맞추는 게임
-- PLO(Pot Limit Omaha) 규칙 적용
-- 60초 제한 시간
-- 정확도와 하이스코어 기록
-
-### 2. Pot Limit 계산 게임
-- 2-6명의 플레이어가 참여
-- 랜덤 SB/BB 설정
-- 실시간 액션 표시 (레이즈, 폴드, 콜)
-- 60초 제한 시간
-- POT! 외치면 정확한 팟 금액 계산
+이 프로젝트는 플러터 웹을 사용하여 개발된 카드 게임입니다. 사용자들은 다양한 카드 게임을 즐길 수 있습니다.
 
 ## 주요 기능
-- 플레이어 수 선택 (2-6명)
-- 실시간 타이머
-- 점수 시스템
-- 정확도 추적
-- 하이스코어 기록
+
+- 카드 게임 플레이
+- 반응형 웹 디자인
+- 모던한 UI/UX
 
 ## 기술 스택
+
 - Flutter
 - Dart
-- GitHub Pages
+- Web
 
-## 온라인 플레이
-[여기](https://snosnosno.github.io/PLO_Practice)에서 게임을 플레이할 수 있습니다.
+## 시작하기
 
-## 개발 환경 설정
-1. Flutter SDK 설치
-2. 저장소 클론
+### 필수 조건
+
+- Flutter SDK
+- Dart SDK
+- 웹 브라우저
+
+### 설치 방법
+
+1. 저장소 클론
 ```bash
-git clone https://github.com/snosnosno/PLO_Practice.git
+git clone https://github.com/snosnosno/mixgame.git
 ```
-3. 의존성 설치
+
+2. 의존성 설치
 ```bash
 flutter pub get
 ```
-4. 실행
+
+3. 실행
 ```bash
 flutter run -d chrome
 ```
+
+## 프로젝트 구조
+
+```
+lib/
+  ├── main.dart
+  ├── home_page.dart
+  └── ...
+```
+
+## 기여하기
+
+1. 이 저장소를 포크합니다.
+2. 새로운 브랜치를 생성합니다 (`git checkout -b feature/amazing-feature`)
+3. 변경사항을 커밋합니다 (`git commit -m 'Add some amazing feature'`)
+4. 브랜치에 푸시합니다 (`git push origin feature/amazing-feature`)
+5. Pull Request를 생성합니다.
+
+## 라이센스
+
+이 프로젝트는 MIT 라이센스 하에 배포됩니다.
