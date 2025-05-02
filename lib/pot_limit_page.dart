@@ -115,8 +115,8 @@ class _PotLimitPageState extends State<PotLimitPage> {
     int action = random.nextInt(100);
     bool stateChanged = false;
 
-    if (action < 50) {
-      // 50% 확률로 "레이즈"
+    if (action < 30) {
+      // 30% 확률로 "레이즈"
       int potLimit = bettingRound!.calculatePotLimit();
       int minRaise;
       int maxRaise = min(potLimit, player.chips);
@@ -155,6 +155,29 @@ class _PotLimitPageState extends State<PotLimitPage> {
       bettingRound!.performAction('raise', raiseAmount);
       playerActionHistory[playerIndex].add('RAISE: $raiseAmount');
       raiseCount++;
+      stateChanged = true;
+    } else if (action < 50) {
+      // 20% 확률로 "콜"
+      int callAmount = bettingRound!.getCallAmount();
+      
+      if (callAmount > player.chips) {
+        // 칩이 부족하면 올인
+        print('Action: ALL-IN (콜 금액 부족) | Player: ${player.name} | 보유 칩: \$${player.chips} | 콜 금액: \$${callAmount}');
+        bettingRound!.performAction('allIn');
+        playerActionHistory[playerIndex].add('ALL-IN: ${player.bet}');
+      } else {
+        print('Action: CALL | Player: ${player.name} | callAmount: \$${callAmount}');
+        bettingRound!.performAction('call');
+        
+        // 포지션이 BB 또는 SB인 경우 이미 블라인드를 냈으므로 총액 표시
+        if (player.position == Position.bigBlind || player.position == Position.smallBlind) {
+          // 총 베팅액을 CALL 액션으로 표시
+          playerActionHistory[playerIndex].clear(); // 기존 SB/BB 표시 제거
+          playerActionHistory[playerIndex].add('CALL: ${player.bet}');
+        } else {
+          playerActionHistory[playerIndex].add('CALL: $callAmount');
+        }
+      }
       stateChanged = true;
     } else if (action < 70) {
       // 20% 확률로 "폴드"
