@@ -29,12 +29,6 @@ class _PotLimitPageState extends State<PotLimitPage> {
 
   final List<int> blindLevels = [100, 200, 400, 600, 1500, 3000];
 
-  final TextEditingController _potController = TextEditingController();
-  final TextEditingController _lastBetController = TextEditingController();
-  final TextEditingController _alreadyBetController = TextEditingController();
-  final TextEditingController _chipsController = TextEditingController();
-  int _maxRaise = 0;
-
   List<List<String>> playerActionHistory = [];
 
   Timer? gameTimer;
@@ -53,10 +47,6 @@ class _PotLimitPageState extends State<PotLimitPage> {
 
   @override
   void dispose() {
-    _potController.dispose();
-    _lastBetController.dispose();
-    _alreadyBetController.dispose();
-    _chipsController.dispose();
     potGuessController.dispose();
     gameTimer?.cancel();
     gameTimer = null;
@@ -123,76 +113,95 @@ class _PotLimitPageState extends State<PotLimitPage> {
 
     final random = Random();
     int action = random.nextInt(100);
+    bool stateChanged = false;
 
     if (action < 50) {
       // 50% 확률로 "레이즈"
       int potLimit = bettingRound!.calculatePotLimit();
       int minRaise;
       int maxRaise = min(potLimit, player.chips);
+      
       if (raiseCount == 0) {
+        // 첫 레이즈는 빅 블라인드의 2배
         minRaise = bigBlind * 2;
       } else {
-        // 최소 레이즈는 이전 베팅(콜) + 이전 레이즈 금액
-        int lastRaise = bettingRound!.currentBet - (raiseCount == 1 ? bigBlind : 0);
-        // lastRaiseAmount가 있다면 그 값을 사용
-        if (bettingRound!.currentBet > 0 && bettingRound!.currentBet != bigBlind) {
-          lastRaise = bettingRound!.currentBet - bettingRound!.currentBet; // fallback
-        }
-        minRaise = bettingRound!.currentBet + (bettingRound!.currentBet > 0 ? bettingRound!.currentBet : bigBlind);
-        // 실제로는 lastRaiseAmount를 추적하는 변수가 필요할 수 있음
+        // 최소 레이즈는 현재 베팅 + 마지막 레이즈 금액
+        minRaise = bettingRound!.currentBet + bettingRound!.lastRaiseAmount;
       }
+      
       if (maxRaise < minRaise) {
-        // 칩이 부족하면 무조건 올인
-        int allInAmount = player.chips;
-        player.chips = 0;
-        player.bet += allInAmount;
-        player.isAllIn = true;
-        pot.addBet(player, allInAmount);
+        // 칩이 부족하면 팟 리밋 내에서 올인
+        print('Action: ALL-IN (부족한 칩) | Player: ${player.name} | 보유 칩: \$${player.chips} | potLimit: \$${potLimit}');
+        bettingRound!.performAction('allIn');
         playerActionHistory[playerIndex].add('ALL-IN: ${player.bet}');
-        print('Action: ALL-IN | Player: ${player.name} | amount: \$${player.bet}');
-        bettingRound!.nextPlayer();
-        setState(() {});
+        stateChanged = true;
         return;
       }
+      
       // 100단위 랜덤 베팅
       int numSteps = ((maxRaise - minRaise) ~/ 100) + 1;
       int raiseAmount = minRaise + (numSteps > 1 ? random.nextInt(numSteps) * 100 : 0);
+      
       if (raiseAmount > player.chips) {
-        // 칩이 부족하면 무조건 올인
-        int allInAmount = player.chips;
-        player.chips = 0;
-        player.bet += allInAmount;
-        player.isAllIn = true;
-        pot.addBet(player, allInAmount);
+        // 칩이 부족하면 올인
+        print('Action: ALL-IN (부족한 칩) | Player: ${player.name} | 보유 칩: \$${player.chips} | potLimit: \$${potLimit}');
+        bettingRound!.performAction('allIn');
         playerActionHistory[playerIndex].add('ALL-IN: ${player.bet}');
-        print('Action: ALL-IN | Player: ${player.name} | amount: \$${player.bet}');
-        bettingRound!.nextPlayer();
-        setState(() {});
+        stateChanged = true;
         return;
       }
+      
       print('Action: RAISE | Player: ${player.name} | raiseAmount: \$${raiseAmount}');
       bettingRound!.performAction('raise', raiseAmount);
       playerActionHistory[playerIndex].add('RAISE: $raiseAmount');
       raiseCount++;
-      setState(() {});
+      stateChanged = true;
     } else if (action < 70) {
       // 20% 확률로 "폴드"
       print('Action: FOLD | Player: ${player.name}');
       bettingRound!.performAction('fold');
       playerActionHistory[playerIndex].add('FOLD');
-      setState(() {});
+      stateChanged = true;
     } else {
       // 30% 확률로 "POT!" (항상 최대금액으로 베팅)
       int potLimit = bettingRound!.calculatePotLimit();
-      int allInAmount = players[playerIndex].chips + players[playerIndex].bet;
-      int potBet = potLimit >= allInAmount ? allInAmount : potLimit;
+      
+      // 콜 금액 계산
+      int callAmount = bettingRound!.getCallAmount();
+      
+      // 모든 플레이어의 베팅 합계 (현재 팟)
+      int currentPot = players.fold(0, (sum, p) => sum + p.bet);
+      
+      // 최종 POT 베팅은 플레이어의 최대 베팅 가능 금액과 팟 리밋 중 작은 값
+      int totalPlayerChips = player.chips + player.bet;
+      int potBet = min(potLimit, totalPlayerChips);
+      
+      // 베팅 금액을 저장 (퀴즈용)
       potCorrectAnswer = potBet;
-      print('Action: POT! | Player: ${player.name} | potLimit: \$${potLimit} | chips: \$${player.chips} | bet: \$${player.bet} | potBet: \$${potBet}');
-      bettingRound!.performAction('raise', potBet);
+      
+      print('------ POT! 계산 상세 ------');
+      print('현재 팟: \$${currentPot} | 콜 금액: \$${callAmount}');
+      print('플레이어 총 칩: \$${totalPlayerChips} | 팟 리밋: \$${potLimit}');
+      print('최종 POT 베팅: \$${potBet}');
+      print('Action: POT! | Player: ${player.name} | potBet: \$${potBet}');
+      
+      // POT 액션 수행 - 팟 리밋을 존중
+      if (player.chips <= potLimit - player.bet) {
+        // 칩이 부족하면 올인
+        print('플레이어 칩이 부족하여 올인');
+        bettingRound!.performAction('allIn');
+      } else {
+        bettingRound!.performAction('raise', potBet);
+      }
+      
       playerActionHistory[playerIndex].add('POT!');
       isPotGuessing = true;
       resultMessage = '';
       raiseCount++;
+      stateChanged = true;
+    }
+    
+    if (stateChanged) {
       setState(() {});
     }
   }
@@ -206,6 +215,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
       resultMessage = '';
       showNextGameButton = false;
       raiseCount = 0;
+      potGuessController.text = '';
     });
     gameTimer?.cancel();
     gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -227,9 +237,9 @@ class _PotLimitPageState extends State<PotLimitPage> {
     setState(() {
       if (userGuess == correctPot) {
         currentScore++;
-        resultMessage = 'Correct! +1pt\nCurrent Score: $currentScore';
+        resultMessage = '정답! +1점\n현재 점수: $currentScore';
       } else {
-        resultMessage = 'Wrong!\nCorrect: $correctPot';
+        resultMessage = '오답!\n정답: $correctPot';
       }
       showNextGameButton = true;
       for (var p in players) {
@@ -239,70 +249,11 @@ class _PotLimitPageState extends State<PotLimitPage> {
     gameTimer?.cancel();
   }
 
-  void _calculateMaxRaise() {
-    int pot = int.tryParse(_potController.text) ?? 0;
-    int lastBet = int.tryParse(_lastBetController.text) ?? 0;
-    int alreadyBet = int.tryParse(_alreadyBetController.text) ?? 0;
-    int chips = int.tryParse(_chipsController.text) ?? 0;
-
-    // 3배 룰: (마지막 베팅 x 3) + 이전 팟
-    int previousPot = pot - lastBet;
-    int maxRaise = (lastBet * 3) + previousPot;
-
-    // 현재 스트릿에서 이미 배팅한 금액 차감
-    maxRaise -= alreadyBet;
-
-    // 플레이어의 남은 칩과 비교하여 더 작은 값 선택
-    maxRaise = maxRaise < chips ? maxRaise : chips;
-
-    setState(() {
-      _maxRaise = maxRaise;
-    });
-  }
-
-  int getNextPlayerIndex(int currentIndex) {
-    // 현재 플레이어의 포지션에 따라 다음 플레이어 결정
-    Position currentPosition = players[currentIndex].position;
-    Position nextPosition;
-    
-    switch (currentPosition) {
-      case Position.underTheGun:
-        nextPosition = Position.hijack;
-        break;
-      case Position.hijack:
-        nextPosition = Position.cutoff;
-        break;
-      case Position.cutoff:
-        nextPosition = Position.dealer;
-        break;
-      case Position.dealer:
-        nextPosition = Position.smallBlind;
-        break;
-      case Position.smallBlind:
-        nextPosition = Position.bigBlind;
-        break;
-      case Position.bigBlind:
-        nextPosition = Position.underTheGun;
-        break;
-      default:
-        nextPosition = Position.underTheGun;
-    }
-    
-    // 다음 포지션을 가진 플레이어 찾기
-    int nextIndex = players.indexWhere((p) => p.position == nextPosition);
-    if (nextIndex == -1) {
-      // 다음 포지션을 가진 플레이어가 없으면 첫 번째 플레이어로
-      nextIndex = 0;
-    }
-    
-    return nextIndex;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pot Limit Calculator'),
+        title: const Text('팟 리밋 계산'),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -488,7 +439,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
                               TextField(
                                 controller: potGuessController,
                                 decoration: const InputDecoration(
-                                  hintText: 'Enter POT! amount',
+                                  hintText: 'POT! 금액 입력',
                                   border: InputBorder.none,
                                   filled: true,
                                   fillColor: Colors.transparent,
@@ -517,7 +468,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
                                     textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                                   ),
                                   onPressed: checkPotGuess,
-                                  child: const Text('Submit'),
+                                  child: const Text('제출'),
                                 ),
                               ),
                             ],
@@ -543,7 +494,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
                             textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                           onPressed: startNewGame,
-                              child: const Text('Start Game'),
+                              child: const Text('게임 시작'),
                         ),
                       ),
                     ),
@@ -587,7 +538,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
                             textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                           onPressed: startNewGame,
-                            child: const Text('Next Game'),
+                            child: const Text('다음 게임'),
                           ),
                         ),
                       ),

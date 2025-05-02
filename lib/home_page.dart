@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'winner_game_page.dart';
 import 'pot_limit_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -8,86 +9,114 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
     final isMobile = screenWidth < 600;
+    final isTablet = screenWidth >= 600 && screenWidth < 1200;
+    final isDesktop = screenWidth >= 1200;
 
     return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  const Color(0xFF1B5E20), // 진한 초록색
-                  const Color(0xFF2E7D32), // 중간 초록색
-                  const Color(0xFF4CAF50), // 밝은 초록색
-                ],
-              ),
-            ),
-            child: SafeArea(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      'PLO Practice',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: isMobile ? 28 : 36,
-                        fontWeight: FontWeight.bold,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withOpacity(0.3),
-                            offset: const Offset(2, 2),
-                            blurRadius: 4,
-      ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.4 - (isMobile ? 28 : 36)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF1B5E20),
+              Color(0xFF2E7D32),
+              Color(0xFF4CAF50),
+            ],
+          ),
+        ),
+        child: Stack(
           children: [
-                        _buildGameButton(
-                          context,
-                          'Winner Guessing Game',
-                          const WinnerGamePage(),
-                          isMobile,
-                        ),
-                        const SizedBox(height: 20),
-                        _buildGameButton(
-                  context,
-                          'Pot Limit Calculator',
-                          const PotLimitPage(),
-                          isMobile,
-                        ),
-                      ],
-                    ),
+            Positioned(
+              left: 16,
+              top: 48,
+              child: TextButton.icon(
+                onPressed: () async {
+                  final url = Uri.parse('https://qr.kakaopay.com/Ej7oKLuOO');
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                },
+                icon: Image.asset(
+                  'assets/kakao_pay.jpg',
+                  height: 24,
+                ),
+                label: Text(
+                  '후원하기',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: isMobile ? 14 : 16,
+                    fontWeight: FontWeight.w600,
                   ),
-                ],
+                ),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  backgroundColor: Colors.yellow,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
               ),
             ),
-          ),
-          Positioned(
-            right: 16,
-            bottom: 12,
-            child: Text(
-              'made by SNO',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
-                fontSize: 17,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 1.2,
+            Center(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'PLO 연습',
+                        style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withOpacity(0.3),
+                              offset: const Offset(2, 2),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: isMobile ? 20 : 40),
+                      _buildGameButton(
+                        context,
+                        '보드 리딩',
+                        const WinnerGamePage(),
+                        isMobile,
+                        isTablet,
+                        isDesktop,
+                      ),
+                      SizedBox(height: isMobile ? 16 : 24),
+                      _buildGameButton(
+                        context,
+                        '팟 리밋 계산',
+                        const PotLimitPage(),
+                        isMobile,
+                        isTablet,
+                        isDesktop,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-                );
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(
+          'made by SNO',
+          textAlign: TextAlign.right,
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.7),
+            fontSize: isMobile ? 14 : 17,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 1.2,
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildGameButton(
@@ -95,9 +124,17 @@ class HomePage extends StatelessWidget {
     String text,
     Widget page,
     bool isMobile,
+    bool isTablet,
+    bool isDesktop,
   ) {
+    final double buttonWidth = isMobile
+        ? double.infinity
+        : isTablet
+            ? 500.0
+            : 600.0;
+
     return Container(
-      width: isMobile ? double.infinity : 400,
+      width: buttonWidth,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
@@ -109,13 +146,13 @@ class HomePage extends StatelessWidget {
         ],
       ),
       child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
+        onPressed: () {
+          Navigator.push(
+            context,
             MaterialPageRoute(builder: (context) => page),
-                );
-              },
-              style: ElevatedButton.styleFrom(
+          );
+        },
+        style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white,
           foregroundColor: const Color(0xFF1B5E20),
           padding: EdgeInsets.symmetric(
@@ -128,10 +165,11 @@ class HomePage extends StatelessWidget {
         ),
         child: Text(
           text,
-          style: TextStyle(
-            fontSize: isMobile ? 18 : 24,
-            fontWeight: FontWeight.bold,
-            ),
+          style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                color: const Color(0xFF1B5E20),
+                fontWeight: FontWeight.bold,
+              ),
+          textAlign: TextAlign.center,
         ),
       ),
     );

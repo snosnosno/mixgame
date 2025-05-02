@@ -161,12 +161,12 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
             if (currentScore > 0) {
               bool isNewHighScore = scoreSystem.addScore(numberOfPlayers, currentScore);
               if (isNewHighScore) {
-                winnerText = 'Game Over! Final Score: $currentScore\n🎉 Congratulations! New High Score! 🎉';
+                winnerText = '게임 종료! 최종 점수: $currentScore\n🎉 축하합니다! 새로운 최고 점수! 🎉';
               } else {
-                winnerText = 'Game Over! Final Score: $currentScore\n(High Score: ${scoreSystem.getHighScore(numberOfPlayers)})';
+                winnerText = '게임 종료! 최종 점수: $currentScore\n(최고 점수: ${scoreSystem.getHighScore(numberOfPlayers)})';
               }
             } else {
-              winnerText = 'Game Over! Final Score: $currentScore';
+              winnerText = '게임 종료! 최종 점수: $currentScore';
             }
             // 타이머 정리
             gameTimer = null;
@@ -206,8 +206,8 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
 
       if (selectedWinnerIndex == actualWinnerIndex) {
         currentScore++;
-        winnerText = 'Correct!\nCurrent Score: $currentScore\nWinning Hand: $winnerHandInfo';
-        roundLogs.add('Round ${roundLogs.length + 1}: Player ${index + 1} selected → Correct! (Score: $currentScore)');
+        winnerText = '정답!\n현재 점수: $currentScore\n이긴 패: $winnerHandInfo';
+        roundLogs.add('라운드 ${roundLogs.length + 1}: Player ${index + 1} 선택 → 정답! (점수: $currentScore)');
         replayRounds.add(ReplayRound(
           playerHands: players.take(numberOfPlayers).map((p) => List<String>.from(p.hand)).toList(),
           communityCards: List<String>.from(communityCards),
@@ -223,8 +223,8 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
           }
         });
       } else {
-        winnerText = 'Wrong!\nThe correct answer is Player ${actualWinnerIndex! + 1}.\nWinning Hand: $winnerHandInfo';
-        roundLogs.add('Round ${roundLogs.length + 1}: Player ${index + 1} selected → Wrong! (Correct: Player ${actualWinnerIndex! + 1}, Score: $currentScore)');
+        winnerText = '오답!\n정답은 Player ${actualWinnerIndex! + 1}입니다.\n이긴 패: $winnerHandInfo';
+        roundLogs.add('라운드 ${roundLogs.length + 1}: Player ${index + 1} 선택 → 오답! (정답: Player ${actualWinnerIndex! + 1}, 점수: $currentScore)');
         replayRounds.add(ReplayRound(
           playerHands: players.take(numberOfPlayers).map((p) => List<String>.from(p.hand)).toList(),
           communityCards: List<String>.from(communityCards),
@@ -425,7 +425,7 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Winner Guessing Game'),
+        title: const Text('보드 리딩'),
         centerTitle: true,
         backgroundColor: const Color(0xFF388E3C),
         elevation: 0,
@@ -469,7 +469,7 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                     if (!isGameStarted) ...[
-                      const Text('Player Count: '),
+                      const Text('플레이어 수: '),
                 DropdownButton<int>(
                   value: numberOfPlayers,
                   items: [2, 3, 4, 5, 6].map((int value) {
@@ -494,7 +494,7 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
               Padding(
                 padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
                 child: Text(
-                      'Time Left: $remainingTime s',
+                      '남은 시간: $remainingTime 초',
                   style: TextStyle(
                         fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -513,7 +513,7 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
               const Padding(
                 padding: EdgeInsets.only(top: 8.0, bottom: 4.0),
                 child: Text(
-                      'Community Cards',
+                      '커뮤니티 카드',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.amber),
                 ),
               ),
@@ -616,7 +616,7 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
                       });
                     },
                     icon: const Icon(Icons.exit_to_app),
-                        label: const Text('End Replay (Return to Current Round)'),
+                        label: const Text('다시보기 종료 (현재 라운드로 돌아가기)'),
                   ),
                 ),
             ],
@@ -635,7 +635,7 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
                     textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   onPressed: startNewGame,
-                      child: const Text('Start Game'),
+                      child: const Text('게임 시작'),
                 ),
               ),
             if (winnerText.isNotEmpty)
