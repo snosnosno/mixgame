@@ -5,6 +5,7 @@ import 'models/card.dart' as poker;
 import 'models/hand_rank.dart';
 import 'models/player.dart';
 import 'models/score_system.dart';
+import 'home_page.dart'; // AppLanguage를 사용하기 위해 추가
 
 class WinnerGamePage extends StatefulWidget {
   const WinnerGamePage({super.key});
@@ -105,6 +106,9 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
   List<ReplayRound> replayRounds = [];
   ReplayRound? replayingRound;
 
+  // getText 함수를 추가하여 AppLanguage 클래스를 사용
+  String getText(String key) => AppLanguage.getText(key);
+
   @override
   void initState() {
     super.initState();
@@ -161,12 +165,12 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
             if (currentScore > 0) {
               bool isNewHighScore = scoreSystem.addScore(numberOfPlayers, currentScore);
               if (isNewHighScore) {
-                winnerText = '게임 종료! 최종 점수: $currentScore\n🎉 축하합니다! 새로운 최고 점수! 🎉';
+                winnerText = '${getText("gameOver")}! ${getText("finalScore")}: $currentScore\n🎉 ${getText("congratulations")}! ${getText("newHighScore")}! 🎉';
               } else {
-                winnerText = '게임 종료! 최종 점수: $currentScore\n(최고 점수: ${scoreSystem.getHighScore(numberOfPlayers)})';
+                winnerText = '${getText("gameOver")}! ${getText("finalScore")}: $currentScore\n(${getText("highScore")}: ${scoreSystem.getHighScore(numberOfPlayers)})';
               }
             } else {
-              winnerText = '게임 종료! 최종 점수: $currentScore';
+              winnerText = '${getText("gameOver")}! ${getText("finalScore")}: $currentScore';
             }
             // 타이머 정리
             gameTimer = null;
@@ -206,8 +210,8 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
 
       if (selectedWinnerIndex == actualWinnerIndex) {
         currentScore++;
-        winnerText = '정답!\n현재 점수: $currentScore\n이긴 패: $winnerHandInfo';
-        roundLogs.add('라운드 ${roundLogs.length + 1}: Player ${index + 1} 선택 → 정답! (점수: $currentScore)');
+        winnerText = '${getText("correctAnswer")}$currentScore\n${getText("winningHand")}: $winnerHandInfo';
+        roundLogs.add('${getText("round")} ${roundLogs.length + 1}: Player ${index + 1} ${getText("selected")} → ${getText("correct")}! (${getText("score")}: $currentScore)');
         replayRounds.add(ReplayRound(
           playerHands: players.take(numberOfPlayers).map((p) => List<String>.from(p.hand)).toList(),
           communityCards: List<String>.from(communityCards),
@@ -223,8 +227,8 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
           }
         });
       } else {
-        winnerText = '오답!\n정답은 Player ${actualWinnerIndex! + 1}입니다.\n이긴 패: $winnerHandInfo';
-        roundLogs.add('라운드 ${roundLogs.length + 1}: Player ${index + 1} 선택 → 오답! (정답: Player ${actualWinnerIndex! + 1}, 점수: $currentScore)');
+        winnerText = '${getText("wrongAnswer")}${getText("correctAnswerIs")} Player ${actualWinnerIndex! + 1}.\n${getText("winningHand")}: $winnerHandInfo';
+        roundLogs.add('${getText("round")} ${roundLogs.length + 1}: Player ${index + 1} ${getText("selected")} → ${getText("wrong")}! (${getText("correct")}: Player ${actualWinnerIndex! + 1}, ${getText("score")}: $currentScore)');
         replayRounds.add(ReplayRound(
           playerHands: players.take(numberOfPlayers).map((p) => List<String>.from(p.hand)).toList(),
           communityCards: List<String>.from(communityCards),
@@ -425,7 +429,7 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('보드 리딩'),
+        title: Text(getText('boardReading')),
         centerTitle: true,
         backgroundColor: const Color(0xFF388E3C),
         elevation: 0,
@@ -469,7 +473,7 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                     if (!isGameStarted) ...[
-                      const Text('플레이어 수: '),
+                      Text('${getText("playerCount")} '),
                 DropdownButton<int>(
                   value: numberOfPlayers,
                   items: [2, 3, 4, 5, 6].map((int value) {
@@ -494,7 +498,7 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
               Padding(
                 padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
                 child: Text(
-                      '남은 시간: $remainingTime 초',
+                     '${getText("remainingTime")} $remainingTime ${getText("seconds")}',
                   style: TextStyle(
                         fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -510,10 +514,10 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
                 ),
               ),
             if (isGameStarted || replayingRound != null) ...[
-              const Padding(
-                padding: EdgeInsets.only(top: 8.0, bottom: 4.0),
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
                 child: Text(
-                      '커뮤니티 카드',
+                     getText('communityCards'),
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.amber),
                 ),
               ),
@@ -616,7 +620,7 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
                       });
                     },
                     icon: const Icon(Icons.exit_to_app),
-                        label: const Text('다시보기 종료 (현재 라운드로 돌아가기)'),
+                    label: Text(getText('endReplay')),
                   ),
                 ),
             ],
@@ -635,7 +639,7 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
                     textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   onPressed: startNewGame,
-                      child: const Text('게임 시작'),
+                      child: Text(getText('startGame')),
                 ),
               ),
             if (winnerText.isNotEmpty)
@@ -676,11 +680,11 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
                 ),
                 child: Column(
                 children: [
-                  const Center(
+                  Center(
                     child: Padding(
-                      padding: EdgeInsets.only(bottom: 4),
+                      padding: const EdgeInsets.only(bottom: 4),
                       child: Text(
-                          '↓↓Review↓↓',
+                         '↓↓${getText("review")}↓↓',
                         style: TextStyle(
                           color: Colors.amber,
                           fontSize: 18,
