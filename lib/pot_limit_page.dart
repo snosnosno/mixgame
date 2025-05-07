@@ -161,11 +161,10 @@ class _PotLimitPageState extends State<PotLimitPage> {
       int maxRaise = min(potLimit, player.chips);
       
       if (raiseCount == 0) {
-        // 첫 레이즈는 빅 블라인드의 2배
-        minRaise = bigBlind * 2;
+        // 첫 레이즈도 getMinimumRaise()로 처리
+        minRaise = bettingRound!.getMinimumRaise();
       } else {
-        // 최소 레이즈는 현재 베팅 + 마지막 레이즈 금액
-        minRaise = bettingRound!.currentBet + bettingRound!.lastRaiseAmount;
+        minRaise = bettingRound!.getMinimumRaise();
       }
       
       if (maxRaise < minRaise) {

@@ -103,6 +103,8 @@ class AppLanguage {
   
   // 현재 언어에 맞는 텍스트 가져오기
   static String getText(String key) {
+    // 'language' 키는 항상 영어로 반환
+    if (key == 'language') return 'Language';
     final Map<String, String> texts = isKorean ? ko : en;
     return texts[key] ?? key;
   }

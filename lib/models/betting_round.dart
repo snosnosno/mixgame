@@ -8,7 +8,8 @@ class BettingRound {
   int currentPlayerIndex = 0;
   int currentBet = 0;
   bool isRoundComplete = false;
-  int lastRaiseAmount = 0;
+  int lastRaiseAmount = 0; // 직전 실제 레이즈(언더레이즈 포함)
+  int lastValidRaiseAmount = 0; // 직전 유효 레이즈(최소 레이즈 이상)
 
   static const List<Position> actionOrder = [
     Position.underTheGun,
@@ -26,6 +27,7 @@ class BettingRound {
     // BB 금액으로 초기화
     int bbIdx = players.indexWhere((p) => p.position == Position.bigBlind);
     lastRaiseAmount = (bbIdx != -1) ? players[bbIdx].bet : 0;
+    lastValidRaiseAmount = lastRaiseAmount;
     currentBet = lastRaiseAmount; // 현재 베팅도 BB 금액으로 초기화
   }
 
@@ -84,14 +86,12 @@ class BettingRound {
     // 최종 팟 리밋 (플레이어의 최대 가능 베팅액과 비교하여 더 작은 값 반환)
     int finalPotLimit = min(potLimit, maxPossibleBet);
     
-    print("---- POT LIMIT 계산 ----");
-    print("다른 플레이어 총 베팅: $potSize | 현재 플레이어 베팅: ${currentPlayer.bet}");
-    print("현재 베팅: $callAmount");
-    print("계산식: $potSize + ($callAmount * 2) = $potLimit");
-    print("플레이어 최대 베팅 가능액: $maxPossibleBet");
-    print("최종 팟 리밋: $finalPotLimit");
-    
     return finalPotLimit;
+  }
+
+  // 미니멈 레이즈 계산 (언더레이즈 규칙 반영)
+  int getMinimumRaise() {
+    return currentBet + lastValidRaiseAmount;
   }
 
   void performAction(String action, [int? amount]) {
@@ -113,45 +113,36 @@ class BettingRound {
         break;
       case 'raise':
         if (amount == null || amount <= currentBet) return;
-        
-        // 팟 리밋 계산 - 안전 확인
         int potLimit = calculatePotLimit();
-        
-        print("---- RAISE 액션 처리 ----");
-        print("요청된 베팅 금액: $amount | 팟 리밋: $potLimit");
-        print("현재 베팅: ${currentPlayer.bet} | 플레이어 칩: ${currentPlayer.chips}");
-        
-        // 플레이어가 실제로 베팅할 수 있는 총액 (현재 베팅 + 남은 칩)
         int maxBet = currentPlayer.chips + currentPlayer.bet;
-        
-        // 요청된 금액을 플레이어의 최대 가능 베팅과 팟 리밋 중 작은 값으로 제한
         int finalBet = min(amount, min(maxBet, potLimit));
-        
-        // 실제 레이즈 금액 계산 (최종 베팅 - 현재 베팅)
         int raiseAmount = finalBet - currentPlayer.bet;
+        int minimumRaise = getMinimumRaise();
         
-        print("최종 베팅: $finalBet | 실제 레이즈 금액: $raiseAmount");
-        
-        if (raiseAmount <= 0) {
-          print("유효하지 않은 레이즈 금액, 액션 무시");
-          return;  // 유효한 레이즈가 아니면 무시
+        if (finalBet < minimumRaise) {
+          // 언더레이즈(최소 미만 레이즈)는 올인만 허용
+          if (finalBet == maxBet) {
+            // 올인 언더레이즈: lastValidRaiseAmount는 갱신하지 않음
+            lastRaiseAmount = finalBet - currentBet;
+          } else {
+            // 유효하지 않은 레이즈
+            return;
+          }
+        } else {
+          // 정상 레이즈: lastValidRaiseAmount 갱신
+          // 순수 레이즈 금액 계산 (현재 베팅 - 이전 베팅)
+          int pureRaiseAmount = finalBet - currentBet;
+          lastRaiseAmount = pureRaiseAmount;
+          lastValidRaiseAmount = pureRaiseAmount;
         }
-
-        // 플레이어 상태 업데이트
+        
         currentPlayer.chips -= raiseAmount;
         currentPlayer.bet = finalBet;
         currentBet = finalBet;
         pot.addBet(currentPlayer, raiseAmount);
-        
-        // 마지막 레이즈 금액 저장 (현재 베팅 - 이전 베팅)
-        lastRaiseAmount = raiseAmount;
-        
-        // 올인 여부 체크
         if (currentPlayer.chips == 0) {
           currentPlayer.isAllIn = true;
-          print("플레이어 올인 상태로 변경");
         }
-        
         nextPlayer();
         break;
       case 'fold':
@@ -168,32 +159,31 @@ class BettingRound {
   }
 
   void allIn() {
-    // 팟 리밋 계산
     int potLimit = calculatePotLimit();
-    
-    // 올인 전 현재 베팅 저장
     int previousBet = currentPlayer.bet;
-    
-    // 올인 금액은 플레이어의 모든 칩 (팟 리밋 내에서)
     int allInAmount = min(currentPlayer.chips, potLimit - previousBet);
     int finalBet = previousBet + allInAmount;
+    // 올인 언더레이즈 체크
+    int minimumRaise = getMinimumRaise();
     
-    print("---- ALL-IN 액션 처리 ----");
-    print("플레이어 칩: ${currentPlayer.chips} | 팟 리밋: $potLimit");
-    print("이전 베팅: $previousBet | 올인 금액: $allInAmount");
-    print("최종 베팅: $finalBet");
+    if (finalBet >= minimumRaise) {
+      // 올인이 미니멈 레이즈 이상이면 유효 레이즈로 간주
+      // 순수 레이즈 금액 계산 (finalBet - currentBet)
+      int pureRaiseAmount = finalBet - currentBet;
+      lastRaiseAmount = pureRaiseAmount;
+      lastValidRaiseAmount = pureRaiseAmount;
+    } else {
+      // 언더레이즈: lastValidRaiseAmount는 유지
+      int pureRaiseAmount = finalBet - currentBet;
+      lastRaiseAmount = pureRaiseAmount;
+    }
     
-    // 플레이어 상태 업데이트
     currentPlayer.chips = 0;
     currentPlayer.bet = finalBet;
     currentPlayer.isAllIn = true;
-    
-    // 현재 베팅 업데이트 (올인 금액이 현재 최대 베팅보다 크면)
     if (finalBet > currentBet) {
-      lastRaiseAmount = finalBet - currentBet;  // 레이즈 금액 저장
       currentBet = finalBet;
     }
-    
     pot.addBet(currentPlayer, allInAmount);
     nextPlayer();
   }
