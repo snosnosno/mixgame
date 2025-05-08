@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
 import 'home_page.dart';
+import 'dart:ui' as ui;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize language based on device locale
+  final deviceLocale = ui.window.locale.languageCode;
+  AppLanguage.setLanguage(deviceLocale == 'ko'); // Korean if 'ko', otherwise English
   
   runApp(const PLOPracticeApp());
 }

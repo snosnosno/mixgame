@@ -135,7 +135,7 @@ class BettingRound {
           lastRaiseAmount = pureRaiseAmount;
           lastValidRaiseAmount = pureRaiseAmount;
         }
-        
+
         currentPlayer.chips -= raiseAmount;
         currentPlayer.bet = finalBet;
         currentBet = finalBet;

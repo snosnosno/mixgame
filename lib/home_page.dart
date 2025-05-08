@@ -66,7 +66,20 @@ class AppLanguage {
     'applyBlinds': '블라인드 적용',
     'customBlinds': '블라인드 설정',
     'useRandomBlinds': '랜덤 블라인드 사용',
-    'gameNotStarted': '게임이 시작되지 않았습니다.'
+    'gameNotStarted': '게임이 시작되지 않았습니다.',
+    'potLimitGuide': '팟 리밋 계산법',
+    'potLimitRule': '팟 리밋 오마하에서 최대 베팅 금액은:',
+    'step1': '1. 현재 팟(pot) 크기 계산',
+    'step2': '2. 콜 금액 계산',
+    'step3': '3. 최대 베팅 = 현재 팟 + 콜 금액 + 콜 금액',
+    'potEquation': 'POT! = 현재 팟 + 콜 금액 x 2',
+    'example': '예시:',
+    'examplePot': '• 현재 팟: 1000',
+    'exampleCall': '• 콜 금액: 300',
+    'exampleCalc': '• POT! 베팅 = 1000 + 300 x 2 = 1600',
+    'exampleResult': '즉, 플레이어는 최대 1600까지 베팅할 수 있습니다.',
+    'manualBlindSetting': '직접 설정',
+    'invalidNumberError': '유효한 숫자를 입력해주세요.'
   };
 
   // 영어 텍스트
@@ -124,7 +137,59 @@ class AppLanguage {
     'applyBlinds': 'Apply Blinds',
     'customBlinds': 'Custom Blinds',
     'useRandomBlinds': 'Use Random Blinds',
-    'gameNotStarted': 'Game has not started yet.'
+    'gameNotStarted': 'Game has not started yet.',
+    'potLimitGuide': 'Pot Limit Guide',
+    'potLimitRule': 'Maximum betting amount in Pot Limit Omaha:',
+    'step1': '1. Calculate current pot size',
+    'step2': '2. Calculate call amount',
+    'step3': '3. Maximum bet = Current pot + Call amount + Call amount',
+    'potEquation': 'POT! = Current pot + Call amount x 2',
+    'example': 'Example:',
+    'examplePot': '• Current pot: 1000',
+    'exampleCall': '• Call amount: 300',
+    'exampleCalc': '• POT! betting = 1000 + 300 x 2 = 1600',
+    'exampleResult': 'Thus, a player can bet up to 1600 maximum.',
+    'manualBlindSetting': 'Manual Setting',
+    'invalidNumberError': 'Please enter a valid number.',
+    
+    // PLO Board Reading Guide section titles and content
+    'ploKeyRules': 'Key Rules for PLO Dealers',
+    'keyRule1': '• Each player must receive exactly 4 hole cards (different from Hold\'em\'s 2 cards).',
+    'keyRule2': '• There are 5 community cards shared by all players.',
+    'keyRule3': '• Players MUST use EXACTLY 2 hole cards and EXACTLY 3 community cards.',
+    'keyRule4': '• Using 1 or 3 hole cards is not allowed. Players must use exactly 2 hole cards.',
+    'keyRule5': '• When evaluating hands, check all possible combinations to find the best hand.',
+    
+    'handJudgingNotes': 'Important Notes for Hand Judging',
+    'handNote1': '• There are 60 possible combinations: choosing 2 from hole cards (6 ways) × choosing 3 from community cards (10 ways)',
+    'handNote2': '• Even if a player declares "I want to use just these 2 cards," the rules require using their best possible hand.',
+    'handNote3': '• Dealers must find the player\'s optimal hand (players may make mistakes).',
+    'handNote4': '• Unlike Hold\'em, a flush requires that 2 of the hole cards be of the same suit.',
+    'handNote5': '• Straights also require that 2 of the hole cards be used.',
+    
+    'confusingSituations': 'Common Confusing Situations',
+    'confuse1': '• "Flush board": Even with 4 cards of the same suit on the board, a flush is impossible without 2 matching suit cards in hand.',
+    'confuse2': '• "One pair board": Since all players can use this pair, the remaining 3 cards determine the winner.',
+    'confuse3': '• "Quads board": When 4 cards of the same rank are on the board, all players can use the quads.',
+    'confuse4': '• "Low hand": In PLO Hi/Lo, A-2-3-4-5 is the best low hand (ignored in PLO High).',
+    'confuse5': '• "Double paired board": When there are 2 pairs on the board, the higher card from hole cards becomes the kicker.',
+    
+    'handReadingSkills': 'Hand Reading Skills',
+    'skill1': '• First check the board texture (suit distribution, connectivity, pairs, etc.).',
+    'skill2': '• Always identify what the nuts (best possible hand) could be.',
+    'skill3': '• Narrow down hand ranges through players\' betting patterns.',
+    'skill4': '• Remember that AAxx pocket aces are weaker in Omaha than in Hold\'em.',
+    'skill5': '• On double-paired boards, two pair is weak, so always check for full house possibilities.',
+    
+    'appGameInstructions': 'How to Play This App',
+    'instruct1': '• Board Reading Game: Practice identifying winners given community cards and each player\'s hole cards.',
+    'instruct2': '• Selecting Answers: Choose the player with the strongest hand.',
+    'instruct3': '• 60-Second Limit: There\'s a time limit to develop quick decision-making skills.',
+    'instruct4': '• Scoring: Earn 1 point for each correct judgment, track your high score.',
+    'instruct5': '• Review Feature: Review incorrect judgments with the correct answer.',
+    'instruct6': '• Pot Limit Game: There\'s also a mode to practice betting calculations in Pot Limit Omaha.',
+    
+    'appPurpose': 'This app is a training tool for real Omaha poker dealers and players. It helps improve quick hand evaluation and accurate pot calculation skills to enhance your dealing abilities in real games.'
   };
   
   // 현재 언어에 맞는 텍스트 가져오기
