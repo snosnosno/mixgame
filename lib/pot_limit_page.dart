@@ -258,7 +258,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
         print('플레이어 칩이 부족하여 올인');
         bettingRound!.performAction('allIn');
       } else {
-        bettingRound!.performAction('raise', potBet);
+      bettingRound!.performAction('raise', potBet);
       }
       
       playerActionHistory[playerIndex].add('POT!');
@@ -358,280 +358,330 @@ class _PotLimitPageState extends State<PotLimitPage> {
       body: Stack(
         children: [
           LayoutBuilder(
-        builder: (context, constraints) {
-          final screenWidth = constraints.maxWidth;
-          final screenHeight = constraints.maxHeight;
-          // 화면 크기에 비례하여 상자 크기 계산 (가장 먼저 선언)
-          final boxW = screenWidth * (screenWidth < 500 ? 0.25 : 0.35);
-          final boxH = boxW * 1.1; // 가로 대비 세로 비율 유지
-          return SingleChildScrollView(
-            child: SizedBox(
-              width: screenWidth,
-              height: screenHeight,
-              child: Stack(
-                children: [
-                  Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFF388E3C),
-                          Color(0xFF1B5E20),
-                          Color(0xFF43A047),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (isGameStarted)
-                    ...List.generate(numberOfPlayers, (index) {
-                      if (index >= players.length) {
-                        return Container();
-                      }
-                      final angle = (index * 60 - 90) * (3.14159 / 180);
-                      final radius = screenWidth * 0.35;
-                      final x = screenWidth / 2 + radius * cos(angle);
-                      final safeTop = MediaQuery.of(context).padding.top;
-                      final appBarHeight = AppBar().preferredSize.height;
-                      final minY = appBarHeight + safeTop + boxH / 2;
-                      final maxY = screenHeight - boxH / 2;
-                      final angleOffset = numberOfPlayers == 5 ? 90 : 90;
-                      final adjAngle = (index * (360 / numberOfPlayers) + angleOffset) * (3.14159 / 180);
-                      final adjRadius = radius * 1.15;
-                      final adjX = screenWidth / 2 + adjRadius * cos(adjAngle);
-                      final adjY = (screenHeight * 0.3) + appBarHeight + adjRadius * sin(adjAngle) * 0.9;
-                      // x좌표는 1픽셀 여백, y좌표는 AppBar+SafeArea+boxH/2만큼 여백
-                      final maxX = screenWidth - 1;
-                      final clampedX = adjX.clamp(1, maxX - 1);
-                      final clampedY = adjY.clamp(minY, maxY);
-
-                      return Positioned(
-                        left: clampedX - boxW / 2,
-                        top: clampedY - boxH / 2,
-                        child: Container(
-                          width: boxW,
-                          height: boxH,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.10),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.18),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
+            builder: (context, constraints) {
+              final screenWidth = constraints.maxWidth;
+              final screenHeight = constraints.maxHeight;
+              final isSmallScreen = screenWidth < 360;
+              // 화면 크기에 비례하여 상자 크기 계산 (가장 먼저 선언)
+              final boxW = screenWidth * (isSmallScreen ? 0.22 : (screenWidth < 500 ? 0.25 : 0.35));
+              final boxH = boxW * 1.1; // 가로 대비 세로 비율 유지
+              
+              // 폰트 사이즈 스케일 팩터
+              final fontScale = isSmallScreen ? 0.8 : 1.0;
+              
+              return SingleChildScrollView(
+                child: SizedBox(
+                  width: screenWidth,
+                  height: screenHeight,
+                  child: Stack(
+                    children: [
+                      Container(
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFF388E3C),
+                              Color(0xFF1B5E20),
+                              Color(0xFF43A047),
                             ],
-                            border: Border.all(
-                              color: Colors.transparent,
-                              width: 0,
+                          ),
+                        ),
+                      ),
+                      if (isGameStarted)
+                        ...List.generate(numberOfPlayers, (index) {
+                          if (index >= players.length) {
+                            return Container();
+                          }
+                          final angle = (index * 60 - 90) * (3.14159 / 180);
+                          final radius = screenWidth * 0.35;
+                          final x = screenWidth / 2 + radius * cos(angle);
+                          final safeTop = MediaQuery.of(context).padding.top;
+                          final appBarHeight = AppBar().preferredSize.height;
+                          final minY = appBarHeight + safeTop + boxH / 2;
+                          final maxY = screenHeight - boxH / 2;
+                          final angleOffset = numberOfPlayers == 5 ? 90 : 90;
+                          final adjAngle = (index * (360 / numberOfPlayers) + angleOffset) * (3.14159 / 180);
+                          final adjRadius = radius * 1.15;
+                          final adjX = screenWidth / 2 + adjRadius * cos(adjAngle);
+                          final adjY = (screenHeight * 0.3) + appBarHeight + adjRadius * sin(adjAngle) * 0.9;
+                          // x좌표는 1픽셀 여백, y좌표는 AppBar+SafeArea+boxH/2만큼 여백
+                          final maxX = screenWidth - 1;
+                          final clampedX = adjX.clamp(1, maxX - 1);
+                          final clampedY = adjY.clamp(minY, maxY);
+
+                          return Positioned(
+                            left: clampedX - boxW / 2,
+                            top: clampedY - boxH / 2,
+                            child: Container(
+                              width: boxW,
+                              height: boxH,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.10),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.18),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                                border: Border.all(
+                                  color: Colors.transparent,
+                                  width: 0,
+                                ),
+                              ),
+                              child: SingleChildScrollView(
+                                physics: const NeverScrollableScrollPhysics(),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      players[index].positionName,
+                                      style: TextStyle(
+                                        color: Colors.amber,
+                                        fontSize: screenWidth * (isSmallScreen ? 0.025 : (screenWidth < 500 ? 0.03 : 0.04)) * fontScale,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      formatAmount(chipsInitial[index]),
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: screenWidth * (isSmallScreen ? 0.03 : (screenWidth < 500 ? 0.035 : 0.045)) * fontScale,
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'RobotoMono',
+                                      ),
+                                    ),
+                                    if (players[index].isAllIn)
+                                      Container(
+                                        margin: EdgeInsets.only(top: isSmallScreen ? 4 : 8),
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: isSmallScreen ? 6 : 10, 
+                                          vertical: isSmallScreen ? 3 : 5
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.yellow.withOpacity(0.8),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          'ALL-IN',
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: screenWidth * (isSmallScreen ? 0.025 : 0.03) * fontScale,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    if (playerActionHistory[index].isNotEmpty)
+                                      Container(
+                                        margin: EdgeInsets.only(top: isSmallScreen ? 4 : 8),
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: isSmallScreen ? 6 : 10, 
+                                          vertical: isSmallScreen ? 3 : 5
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withOpacity(0.35),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Column(
+                                          children: playerActionHistory[index].map((action) {
+                                            return Text(
+                                              action,
+                                              style: TextStyle(
+                                                color: action.contains('FOLD')
+                                                    ? Colors.redAccent
+                                                    : action.contains('POT!')
+                                                        ? Colors.amber
+                                                        : Colors.lightGreenAccent,
+                                                fontSize: screenWidth * (isSmallScreen ? 0.022 : (screenWidth < 500 ? 0.025 : 0.03)) * fontScale,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                        
+                        // POT 입력 대화상자 - 더 투명하게 수정
+                        if (isPotGuessing)
+                          Positioned(
+                            left: screenWidth / 2 - (isSmallScreen ? 125 : 150),
+                            bottom: screenHeight * (isSmallScreen ? 0.12 : 0.15),
+                            child: Container(
+                              width: isSmallScreen ? 250 : 300,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.4), // 투명도 증가
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 6,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.5),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Padding(
+                                padding: EdgeInsets.all(isSmallScreen ? 8.0 : 12.0),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'POT! 금액 입력',
+                                      style: TextStyle(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: isSmallScreen ? 16 : 18,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    TextField(
+                                      controller: potGuessController,
+                                      decoration: InputDecoration(
+                                        hintText: getText('enterPotAmount'),
+                                        border: InputBorder.none,
+                                        filled: true,
+                                        fillColor: Colors.white.withOpacity(0.4), // 입력 필드도 투명하게
+                                        contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 12, 
+                                          vertical: isSmallScreen ? 8 : 12
+                                        ),
+                                      ),
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: isSmallScreen ? 16 : 18,
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                      onSubmitted: (value) {
+                                        checkPotGuess();
+                                      },
+                                    ),
+                                    const SizedBox(height: 10),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.green,
+                                          foregroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: isSmallScreen ? 8 : 12
+                                          ),
+                                          textStyle: TextStyle(
+                                            fontSize: isSmallScreen ? 14 : 15, 
+                                            fontWeight: FontWeight.bold
+                                          ),
+                                        ),
+                                        onPressed: checkPotGuess,
+                                        child: Text(getText('submit')),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
-                          child: SingleChildScrollView(
-                            physics: const NeverScrollableScrollPhysics(),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                players[index].positionName,
-                                style: TextStyle(
-                                  color: Colors.amber,
-                                    fontSize: screenWidth * (screenWidth < 500 ? 0.03 : 0.04),
-                                    fontWeight: FontWeight.bold,
+                          
+                        if (!isGameStarted)
+                          Positioned(
+                            top: screenHeight * 0.65,
+                            left: 0,
+                            right: 0,
+                            child: Center(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.deepPurpleAccent,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+                                  elevation: 8,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: isSmallScreen ? 24 : 32, 
+                                    vertical: isSmallScreen ? 14 : 18
+                                  ),
+                                  textStyle: TextStyle(
+                                    fontSize: isSmallScreen ? 16 : 18, 
+                                    fontWeight: FontWeight.bold
                                   ),
                                 ),
-                                const SizedBox(height: 2),
-                              Text(
-                                  formatAmount(chipsInitial[index]),
+                                onPressed: startNewGame,
+                                child: Text(getText('startGame')),
+                              ),
+                            ),
+                          ),
+                          
+                        if (resultMessage.isNotEmpty)
+                          Positioned(
+                            top: screenHeight * 0.25,
+                            left: 0,
+                            right: 0,
+                            child: Center(
+                              child: Text(
+                                resultMessage,
                                 style: TextStyle(
                                   color: Colors.white,
-                                    fontSize: screenWidth * (screenWidth < 500 ? 0.035 : 0.045),
+                                  fontSize: isSmallScreen ? 18 : 20,
                                   fontWeight: FontWeight.bold,
-                                  fontFamily: 'RobotoMono',
                                 ),
                               ),
-                              if (players[index].isAllIn)
-                                Container(
-                                  margin: const EdgeInsets.only(top: 8),
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                  decoration: BoxDecoration(
-                                    color: Colors.yellow.withOpacity(0.8),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                    child: Text(
-                                    'ALL-IN',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                        fontSize: screenWidth * 0.03,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              if (playerActionHistory[index].isNotEmpty)
-                                Container(
-                                  margin: const EdgeInsets.only(top: 8),
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.35),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Column(
-                                    children: playerActionHistory[index].map((action) {
-                                      return Text(
-                                        action,
-                                        style: TextStyle(
-                                          color: action.contains('FOLD')
-                                              ? Colors.redAccent
-                                              : action.contains('POT!')
-                                                  ? Colors.amber
-                                                  : Colors.lightGreenAccent,
-                                            fontSize: screenWidth * (screenWidth < 500 ? 0.025 : 0.03),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      );
-                                    }).toList(),
-                                  ),
-                                ),
-                            ],
                             ),
                           ),
-                        ),
-                      );
-                    }),
-                  if (isPotGuessing)
-                    Positioned(
-                      left: MediaQuery.of(context).size.width / 2 - 150,
-                      bottom: MediaQuery.of(context).size.height * 0.15,
-                      child: Container(
-                        width: 300,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.65),
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 6,
-                              spreadRadius: 1,
-                            ),
-                          ],
-                        ),
-                        child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextField(
-                                controller: potGuessController,
-                                decoration: InputDecoration(
-                                  hintText: getText('enterPotAmount'),
-                                  border: InputBorder.none,
-                                  filled: true,
-                                  fillColor: Colors.transparent,
+                          
+                        if (showNextGameButton)
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: screenHeight * (isSmallScreen ? 0.12 : 0.15),
+                            child: Center(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.deepPurpleAccent.withOpacity(0.65),
+                                  borderRadius: BorderRadius.circular(18),
                                 ),
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                ),
-                                keyboardType: TextInputType.number,
-                                onSubmitted: (value) {
-                                  checkPotGuess();
-                                },
-                              ),
-                                  const SizedBox(height: 10),
-                              SizedBox(
-                                width: double.infinity,
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
+                                    backgroundColor: Colors.transparent,
+                                    shadowColor: Colors.transparent,
                                     foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(18),
                                     ),
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                                    elevation: 0,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: isSmallScreen ? 24 : 32, 
+                                      vertical: isSmallScreen ? 14 : 18
+                                    ),
+                                    textStyle: TextStyle(
+                                      fontSize: isSmallScreen ? 16 : 18, 
+                                      fontWeight: FontWeight.bold
+                                    ),
                                   ),
-                                  onPressed: checkPotGuess,
-                                  child: Text(getText('submit')),
+                                  onPressed: startNewGame,
+                                  child: Text(getText('nextGame')),
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (!isGameStarted)
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.65,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurpleAccent,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18),
                             ),
-                            elevation: 8,
-                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
-                            textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
-                          onPressed: startNewGame,
-                              child: Text(getText('startGame')),
-                        ),
-                      ),
-                    ),
-                  if (resultMessage.isNotEmpty)
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.25,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: Text(
-                          resultMessage,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (showNextGameButton)
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: MediaQuery.of(context).size.height * 0.15,
-                      child: Center(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.deepPurpleAccent.withOpacity(0.65),
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                              elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
-                            textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          onPressed: startNewGame,
-                            child: Text(getText('nextGame')),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          );
-        },
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
           Positioned(
             right: 16,
