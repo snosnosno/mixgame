@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'winner_game_page.dart';
-import 'pot_limit_page.dart';
+import 'pages/winner_game_page.dart';
+import 'pages/pot_limit_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // 앱 전체에서 공유할 언어 설정
@@ -23,6 +23,7 @@ class AppLanguage {
     'madeBy': 'made by SNO',
     'boardReadingDescription': '이 게임은 오마하 포커의 보드 리딩 능력을 향상시키는 훈련입니다. 다양한 핸드와 커뮤니티 카드를 분석하여 승자를 맞추는 연습을 할 수 있습니다.',
     'potLimitDescription': '오마하 포커에서 중요한 팟 리밋 베팅 금액을 계산하는 연습입니다. 다양한 상황에서 정확한 팟 리밋 금액을 빠르게 계산하는 능력을 키울 수 있습니다.',
+    'boardReadingGuide': '오마하 포커 보드 리딩 가이드',
     'startGame': '게임 시작',
     'nextGame': '다음 게임',
     'correctAnswer': '정답! +1점\n현재 점수: ',
@@ -53,7 +54,19 @@ class AppLanguage {
     'correct': '정답',
     'wrong': '오답',
     'score': '점수',
-    'review': '리뷰'
+    'review': '리뷰',
+    'boardReadingHelp': '보드 리딩 설명',
+    'viewCalculation': '계산식 보기',
+    'potCalculation': 'POT! 계산식',
+    'currentPot': '현재 팟',
+    'callAmount': '콜 금액',
+    'calculation': '계산식',
+    'potBetting': 'POT! 베팅',
+    'answer': '정답',
+    'applyBlinds': '블라인드 적용',
+    'customBlinds': '블라인드 설정',
+    'useRandomBlinds': '랜덤 블라인드 사용',
+    'gameNotStarted': '게임이 시작되지 않았습니다.'
   };
 
   // 영어 텍스트
@@ -68,6 +81,7 @@ class AppLanguage {
     'madeBy': 'made by SNO',
     'boardReadingDescription': 'This game helps you improve your board reading skills in Omaha Poker. Practice analyzing various hands and community cards to find the winner.',
     'potLimitDescription': 'Practice calculating pot limit betting amounts in Omaha Poker. Develop your ability to quickly calculate accurate pot limit amounts in various situations.',
+    'boardReadingGuide': 'Omaha Poker Board Reading Guide',
     'startGame': 'Start Game',
     'nextGame': 'Next Game',
     'correctAnswer': 'Correct! +1 point\nCurrent score: ',
@@ -98,7 +112,19 @@ class AppLanguage {
     'correct': 'correct',
     'wrong': 'wrong',
     'score': 'score',
-    'review': 'Review'
+    'review': 'Review',
+    'boardReadingHelp': 'Board Reading Guide',
+    'viewCalculation': 'View Calculation',
+    'potCalculation': 'POT! Calculation',
+    'currentPot': 'Current Pot',
+    'callAmount': 'Call Amount',
+    'calculation': 'Calculation',
+    'potBetting': 'POT! Betting',
+    'answer': 'Answer',
+    'applyBlinds': 'Apply Blinds',
+    'customBlinds': 'Custom Blinds',
+    'useRandomBlinds': 'Use Random Blinds',
+    'gameNotStarted': 'Game has not started yet.'
   };
   
   // 현재 언어에 맞는 텍스트 가져오기
