@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'pages/winner_game_page.dart';
 import 'pages/pot_limit_page.dart';
+import 'pages/pot_limit_calculator_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // 앱 전체에서 공유할 언어 설정
@@ -16,6 +17,7 @@ class AppLanguage {
     'appTitle': 'PL OMAHA 연습',
     'boardReading': '보드 리딩',
     'potLimitCalculation': '팟 리밋 계산',
+    'potLimitCalculator': '팟 리밋 계산기',
     'donate': '후원하기',
     'gameDescription': '게임설명',
     'confirm': '확인',
@@ -79,7 +81,8 @@ class AppLanguage {
     'exampleCalc': '• POT! 베팅 = 1000 + 300 x 2 = 1600',
     'exampleResult': '즉, 플레이어는 최대 1600까지 베팅할 수 있습니다.',
     'manualBlindSetting': '직접 설정',
-    'invalidNumberError': '유효한 숫자를 입력해주세요.'
+    'invalidNumberError': '유효한 숫자를 입력해주세요.',
+    'potLimitCalculatorDescription': '팟 리밋 금액을 빠르게 계산할 수 있는 간단한 계산기입니다. 현재 팟과 콜 금액을 입력하면 즉시 최대 베팅 가능한 금액을 알려줍니다.',
   };
 
   // 영어 텍스트
@@ -87,6 +90,7 @@ class AppLanguage {
     'appTitle': 'PL OMAHA Practice',
     'boardReading': 'Board Reading',
     'potLimitCalculation': 'Pot Limit Calculation',
+    'potLimitCalculator': 'Pot Limit Calculator',
     'donate': 'Donate',
     'gameDescription': 'Game Info',
     'confirm': 'OK',
@@ -189,7 +193,8 @@ class AppLanguage {
     'instruct5': '• Review Feature: Review incorrect judgments with the correct answer.',
     'instruct6': '• Pot Limit Game: There\'s also a mode to practice betting calculations in Pot Limit Omaha.',
     
-    'appPurpose': 'This app is a training tool for real Omaha poker dealers and players. It helps improve quick hand evaluation and accurate pot calculation skills to enhance your dealing abilities in real games.'
+    'appPurpose': 'This app is a training tool for real Omaha poker dealers and players. It helps improve quick hand evaluation and accurate pot calculation skills to enhance your dealing abilities in real games.',
+    'potLimitCalculatorDescription': 'A simple calculator to quickly calculate pot limit amounts. Just enter the current pot and call amount to instantly get the maximum possible bet.',
   };
   
   // 현재 언어에 맞는 텍스트 가져오기
@@ -254,6 +259,8 @@ class _HomePageState extends State<HomePage> {
       descriptionKey = 'boardReadingDescription';
     } else if (gameKey == 'potLimitCalculation') {
       descriptionKey = 'potLimitDescription';
+    } else if (gameKey == 'potLimitCalculator') {
+      descriptionKey = 'potLimitCalculatorDescription';
     }
 
     showDialog(
@@ -422,6 +429,15 @@ class _HomePageState extends State<HomePage> {
                         context,
                         'potLimitCalculation',
                         const PotLimitPage(),
+                        isMobile,
+                        isTablet,
+                        isDesktop,
+                      ),
+                      SizedBox(height: isMobile ? 16 : 24),
+                      _buildGameButton(
+                        context,
+                        'potLimitCalculator',
+                        const PotLimitCalculatorPage(),
                         isMobile,
                         isTablet,
                         isDesktop,

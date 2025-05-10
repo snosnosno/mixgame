@@ -173,8 +173,6 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> with SingleTickerPr
                           fontFamily: 'RobotoMono',
                         ),
                       ),
-                      if (widget.player.isAllIn)
-                        _buildActionBadge('ALL-IN', Colors.yellow.withOpacity(0.8), Colors.black),
                       if (widget.actionHistory.isNotEmpty)
                         _buildActionHistoryContainer(),
                       // POT 애니메이션 활성화 시 추가 효과
@@ -217,29 +215,6 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> with SingleTickerPr
           fontSize: widget.screenWidth * (widget.isSmallScreen ? 0.036 : 0.042) * widget.fontScale,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.2,
-        ),
-      ),
-    );
-  }
-
-  /// 액션 배지 위젯 (ALL-IN 등)
-  Widget _buildActionBadge(String text, Color bgColor, Color textColor) {
-    return Container(
-      margin: EdgeInsets.only(top: widget.isSmallScreen ? 4 : 8),
-      padding: EdgeInsets.symmetric(
-        horizontal: widget.isSmallScreen ? 6 : 10, 
-        vertical: widget.isSmallScreen ? 3 : 5
-      ),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: textColor,
-          fontSize: widget.screenWidth * (widget.isSmallScreen ? 0.025 : 0.03) * widget.fontScale,
-          fontWeight: FontWeight.bold,
         ),
       ),
     );
