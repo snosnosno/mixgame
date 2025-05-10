@@ -830,17 +830,17 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
                     
                     // 게임 시작 버튼
                     ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurpleAccent,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        elevation: 8,
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
-                        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      onPressed: startNewGame,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurpleAccent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    elevation: 8,
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+                    textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: startNewGame,
                       child: Text(getText('startGame')),
                     ),
                   ],

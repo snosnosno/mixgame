@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'models/player.dart';
 import 'models/pot.dart';
 import 'models/betting_round.dart';
@@ -23,6 +24,8 @@ class _PotLimitPageState extends State<PotLimitPage> {
 
   List<Player> players = [];
   TextEditingController potGuessController = TextEditingController();
+  TextEditingController sbController = TextEditingController(text: '100');
+  TextEditingController bbController = TextEditingController(text: '200');
   bool isPotGuessing = false;
   String resultMessage = '';
   int numberOfPlayers = 6;
@@ -47,11 +50,15 @@ class _PotLimitPageState extends State<PotLimitPage> {
   void initState() {
     super.initState();
     playerActionHistory = List.generate(6, (_) => []);
+    sbController.text = smallBlind.toString();
+    bbController.text = bigBlind.toString();
   }
 
   @override
   void dispose() {
     potGuessController.dispose();
+    sbController.dispose();
+    bbController.dispose();
     gameTimer?.cancel();
     gameTimer = null;
     super.dispose();
@@ -69,6 +76,10 @@ class _PotLimitPageState extends State<PotLimitPage> {
     int blindIndex = random.nextInt(blindLevels.length);
     smallBlind = blindLevels[blindIndex];
     bigBlind = smallBlind * 2;
+    
+    // 텍스트 필드 업데이트
+    sbController.text = smallBlind.toString();
+    bbController.text = bigBlind.toString();
 
     players = List.generate(
       numberOfPlayers,
@@ -333,371 +344,666 @@ class _PotLimitPageState extends State<PotLimitPage> {
     gameTimer?.cancel();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(getText('potLimitCalculation')),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF2E7D32),
-                Color(0xFF1B5E20),
-                Color(0xFF388E3C),
+  void _showPotCalculationGuide(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            getText('potLimitGuide'),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1B5E20),
+            ),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  getText('potLimitRule'),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(getText('step1')),
+                const SizedBox(height: 8),
+                Text(getText('step2')),
+                const SizedBox(height: 8),
+                Text(getText('step3')),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.amber.withOpacity(0.5),
+                    ),
+                  ),
+                  child: Text(
+                    getText('potEquation'),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  getText('example'),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(getText('examplePot')),
+                Text(getText('exampleCall')),
+                Text(getText('exampleCalc')),
+                const SizedBox(height: 8),
+                Text(
+                  getText('exampleResult'),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                getText('confirm'),
+                style: const TextStyle(
+                  color: Color(0xFF1B5E20),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+          backgroundColor: Colors.white,
+          elevation: 10,
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF2E7D32),
+      appBar: AppBar(
+        title: const Text('팟 리밋 계산', style: TextStyle(color: Colors.white)),
+        centerTitle: true,
+        backgroundColor: const Color(0xFF2E7D32),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: Stack(
-        children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final screenWidth = constraints.maxWidth;
-              final screenHeight = constraints.maxHeight;
-              final isSmallScreen = screenWidth < 360;
-              // 화면 크기에 비례하여 상자 크기 계산 (가장 먼저 선언)
-              final boxW = screenWidth * (isSmallScreen ? 0.22 : (screenWidth < 500 ? 0.25 : 0.35));
-              final boxH = boxW * 1.1; // 가로 대비 세로 비율 유지
-              
-              // 폰트 사이즈 스케일 팩터
-              final fontScale = isSmallScreen ? 0.8 : 1.0;
-              
-              return SingleChildScrollView(
-                child: SizedBox(
-                  width: screenWidth,
-                  height: screenHeight,
-                  child: Stack(
-                    children: [
+      body: !isGameStarted
+          ? Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+                children: [
+                  const SizedBox(height: 16),
+                  
+                  // 게임 시작 버튼 - 최상단으로 이동
+                  Container(
+                    width: 250,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.deepPurpleAccent,
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: TextButton(
+                      onPressed: startNewGame,
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(22),
+                        ),
+                      ),
+                      child: const Text(
+                        '게임 시작',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  // 블라인드 설정 박스
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          '블라인드 설정',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        // 랜덤 블라인드 사용 버튼
+                        Container(
+                          width: 200,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFB300),
+                            borderRadius: BorderRadius.circular(22),
+                          ),
+                          child: TextButton(
+                            onPressed: () {
+                              initializePlayers();
+                              setState(() {});
+                            },
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(22),
+                              ),
+                            ),
+                            child: const Text(
+                              '랜덤 블라인드 사용',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          '직접 설정',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        // SB/BB 입력 영역
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 100,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                children: [
+                                  const Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text(
+                                      'SB',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(8.0),
+                                    color: Colors.white.withOpacity(0.1),
+                                    child: Center(
+                                      child: Text(
+                                        '100',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            const Text(
+                              '/',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Container(
+                              width: 100,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                children: [
+                                  const Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text(
+                                      'BB',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(8.0),
+                                    color: Colors.white.withOpacity(0.1),
+                                    child: Center(
+                                      child: Text(
+                                        '200',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        // 블라인드 적용 버튼
+                        Container(
+                          width: 150,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: TextButton(
+                            onPressed: () {
+                              setState(() {
+                                int? sb = int.tryParse(sbController.text);
+                                int? bb = int.tryParse(bbController.text);
+                                
+                                if (sb != null && bb != null && sb > 0 && bb > 0) {
+                                  smallBlind = sb;
+                                  bigBlind = bb;
+                                } else {
+                                  sbController.text = smallBlind.toString();
+                                  bbController.text = bigBlind.toString();
+                                  
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(getText('invalidNumberError')),
+                                      backgroundColor: Colors.red,
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              });
+                            },
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                            child: const Text(
+                              '블라인드 적용',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const Spacer(), // 중간 공간 확보
+                  
+                  // 계산식 보기 버튼
+                  Container(
+                    width: 250,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFB300),
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: TextButton(
+                      onPressed: () => _showPotCalculationGuide(context),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(22),
+                        ),
+                      ),
+                      child: const Text(
+                        '계산식 보기',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 40),
+                  
+                  // Made by SNO 텍스트
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Text(
+                        'made by SNO',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.7),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : _buildGameUI(),
+    );
+  }
+
+  Widget _buildGameUI() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenWidth < 360;
+    final boxW = screenWidth * (isSmallScreen ? 0.22 : (screenWidth < 500 ? 0.25 : 0.35));
+    final boxH = boxW * 1.1;
+    final fontScale = isSmallScreen ? 0.8 : 1.0;
+    
+    return Stack(
+      children: [
+        ...List.generate(numberOfPlayers, (index) {
+          if (index >= players.length) {
+            return Container();
+          }
+          
+          final angle = (index * 60 - 90) * (3.14159 / 180);
+          final radius = screenWidth * 0.35;
+          final safeTop = MediaQuery.of(context).padding.top;
+          final appBarHeight = AppBar().preferredSize.height;
+          final minY = appBarHeight + safeTop + boxH / 2;
+          final maxY = screenHeight - boxH / 2;
+          final angleOffset = numberOfPlayers == 5 ? 90 : 90;
+          final adjAngle = (index * (360 / numberOfPlayers) + angleOffset) * (3.14159 / 180);
+          final adjRadius = radius * 1.15;
+          final adjX = screenWidth / 2 + adjRadius * cos(adjAngle);
+          final adjY = (screenHeight * 0.3) + adjRadius * sin(adjAngle) * 0.9;
+          final maxX = screenWidth - 1;
+          final clampedX = adjX.clamp(1, maxX - 1);
+          final clampedY = adjY.clamp(minY, maxY);
+
+          return Positioned(
+            left: clampedX - boxW / 2,
+            top: clampedY - boxH / 2,
+            child: Container(
+              width: boxW,
+              height: boxH,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.10),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.18),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+                border: Border.all(
+                  color: Colors.transparent,
+                  width: 0,
+                ),
+              ),
+              child: SingleChildScrollView(
+                physics: const NeverScrollableScrollPhysics(),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      players[index].positionName,
+                      style: TextStyle(
+                        color: Colors.amber,
+                        fontSize: screenWidth * (isSmallScreen ? 0.025 : (screenWidth < 500 ? 0.03 : 0.04)) * fontScale,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      formatAmount(chipsInitial[index]),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: screenWidth * (isSmallScreen ? 0.03 : (screenWidth < 500 ? 0.035 : 0.045)) * fontScale,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'RobotoMono',
+                      ),
+                    ),
+                    if (players[index].isAllIn)
                       Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Color(0xFF388E3C),
-                              Color(0xFF1B5E20),
-                              Color(0xFF43A047),
-                            ],
+                        margin: EdgeInsets.only(top: isSmallScreen ? 4 : 8),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isSmallScreen ? 6 : 10, 
+                          vertical: isSmallScreen ? 3 : 5
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.yellow.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'ALL-IN',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: screenWidth * (isSmallScreen ? 0.025 : 0.03) * fontScale,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                      if (isGameStarted)
-                        ...List.generate(numberOfPlayers, (index) {
-                          if (index >= players.length) {
-                            return Container();
-                          }
-                          final angle = (index * 60 - 90) * (3.14159 / 180);
-                          final radius = screenWidth * 0.35;
-                          final x = screenWidth / 2 + radius * cos(angle);
-                          final safeTop = MediaQuery.of(context).padding.top;
-                          final appBarHeight = AppBar().preferredSize.height;
-                          final minY = appBarHeight + safeTop + boxH / 2;
-                          final maxY = screenHeight - boxH / 2;
-                          final angleOffset = numberOfPlayers == 5 ? 90 : 90;
-                          final adjAngle = (index * (360 / numberOfPlayers) + angleOffset) * (3.14159 / 180);
-                          final adjRadius = radius * 1.15;
-                          final adjX = screenWidth / 2 + adjRadius * cos(adjAngle);
-                          final adjY = (screenHeight * 0.3) + appBarHeight + adjRadius * sin(adjAngle) * 0.9;
-                          // x좌표는 1픽셀 여백, y좌표는 AppBar+SafeArea+boxH/2만큼 여백
-                          final maxX = screenWidth - 1;
-                          final clampedX = adjX.clamp(1, maxX - 1);
-                          final clampedY = adjY.clamp(minY, maxY);
-
-                          return Positioned(
-                            left: clampedX - boxW / 2,
-                            top: clampedY - boxH / 2,
-                            child: Container(
-                              width: boxW,
-                              height: boxH,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.10),
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.18),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                                border: Border.all(
-                                  color: Colors.transparent,
-                                  width: 0,
-                                ),
+                    if (playerActionHistory[index].isNotEmpty)
+                      Container(
+                        margin: EdgeInsets.only(top: isSmallScreen ? 4 : 8),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isSmallScreen ? 6 : 10, 
+                          vertical: isSmallScreen ? 3 : 5
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.35),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: playerActionHistory[index].map((action) {
+                            return Text(
+                              action,
+                              style: TextStyle(
+                                color: action.contains('FOLD')
+                                    ? Colors.redAccent
+                                    : action.contains('POT!')
+                                        ? Colors.amber
+                                        : Colors.lightGreenAccent,
+                                fontSize: screenWidth * (isSmallScreen ? 0.022 : (screenWidth < 500 ? 0.025 : 0.03)) * fontScale,
+                                fontWeight: FontWeight.bold,
                               ),
-                              child: SingleChildScrollView(
-                                physics: const NeverScrollableScrollPhysics(),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      players[index].positionName,
-                                      style: TextStyle(
-                                        color: Colors.amber,
-                                        fontSize: screenWidth * (isSmallScreen ? 0.025 : (screenWidth < 500 ? 0.03 : 0.04)) * fontScale,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      formatAmount(chipsInitial[index]),
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: screenWidth * (isSmallScreen ? 0.03 : (screenWidth < 500 ? 0.035 : 0.045)) * fontScale,
-                                        fontWeight: FontWeight.bold,
-                                        fontFamily: 'RobotoMono',
-                                      ),
-                                    ),
-                                    if (players[index].isAllIn)
-                                      Container(
-                                        margin: EdgeInsets.only(top: isSmallScreen ? 4 : 8),
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: isSmallScreen ? 6 : 10, 
-                                          vertical: isSmallScreen ? 3 : 5
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.yellow.withOpacity(0.8),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Text(
-                                          'ALL-IN',
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: screenWidth * (isSmallScreen ? 0.025 : 0.03) * fontScale,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    if (playerActionHistory[index].isNotEmpty)
-                                      Container(
-                                        margin: EdgeInsets.only(top: isSmallScreen ? 4 : 8),
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: isSmallScreen ? 6 : 10, 
-                                          vertical: isSmallScreen ? 3 : 5
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.35),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Column(
-                                          children: playerActionHistory[index].map((action) {
-                                            return Text(
-                                              action,
-                                              style: TextStyle(
-                                                color: action.contains('FOLD')
-                                                    ? Colors.redAccent
-                                                    : action.contains('POT!')
-                                                        ? Colors.amber
-                                                        : Colors.lightGreenAccent,
-                                                fontSize: screenWidth * (isSmallScreen ? 0.022 : (screenWidth < 500 ? 0.025 : 0.03)) * fontScale,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            );
-                                          }).toList(),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        }),
-                        
-                        // POT 입력 대화상자 - 더 투명하게 수정
-                        if (isPotGuessing)
-                          Positioned(
-                            left: screenWidth / 2 - (isSmallScreen ? 125 : 150),
-                            bottom: screenHeight * (isSmallScreen ? 0.12 : 0.15),
-                            child: Container(
-                              width: isSmallScreen ? 250 : 300,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.4), // 투명도 증가
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 6,
-                                    spreadRadius: 1,
-                                  ),
-                                ],
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.5),
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: Padding(
-                                padding: EdgeInsets.all(isSmallScreen ? 8.0 : 12.0),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'POT! 금액 입력',
-                                      style: TextStyle(
-                                        color: Colors.black87,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: isSmallScreen ? 16 : 18,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    TextField(
-                                      controller: potGuessController,
-                                      decoration: InputDecoration(
-                                        hintText: getText('enterPotAmount'),
-                                        border: InputBorder.none,
-                                        filled: true,
-                                        fillColor: Colors.white.withOpacity(0.4), // 입력 필드도 투명하게
-                                        contentPadding: EdgeInsets.symmetric(
-                                          horizontal: 12, 
-                                          vertical: isSmallScreen ? 8 : 12
-                                        ),
-                                      ),
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: isSmallScreen ? 16 : 18,
-                                      ),
-                                      keyboardType: TextInputType.number,
-                                      onSubmitted: (value) {
-                                        checkPotGuess();
-                                      },
-                                    ),
-                                    const SizedBox(height: 10),
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.green,
-                                          foregroundColor: Colors.white,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: isSmallScreen ? 8 : 12
-                                          ),
-                                          textStyle: TextStyle(
-                                            fontSize: isSmallScreen ? 14 : 15, 
-                                            fontWeight: FontWeight.bold
-                                          ),
-                                        ),
-                                        onPressed: checkPotGuess,
-                                        child: Text(getText('submit')),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          
-                        if (!isGameStarted)
-                          Positioned(
-                            top: screenHeight * 0.65,
-                            left: 0,
-                            right: 0,
-                            child: Center(
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.deepPurpleAccent,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                  elevation: 8,
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: isSmallScreen ? 24 : 32, 
-                                    vertical: isSmallScreen ? 14 : 18
-                                  ),
-                                  textStyle: TextStyle(
-                                    fontSize: isSmallScreen ? 16 : 18, 
-                                    fontWeight: FontWeight.bold
-                                  ),
-                                ),
-                                onPressed: startNewGame,
-                                child: Text(getText('startGame')),
-                              ),
-                            ),
-                          ),
-                          
-                        if (resultMessage.isNotEmpty)
-                          Positioned(
-                            top: screenHeight * 0.25,
-                            left: 0,
-                            right: 0,
-                            child: Center(
-                              child: Text(
-                                resultMessage,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: isSmallScreen ? 18 : 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                          
-                        if (showNextGameButton)
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: screenHeight * (isSmallScreen ? 0.12 : 0.15),
-                            child: Center(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.deepPurpleAccent.withOpacity(0.65),
-                                  borderRadius: BorderRadius.circular(18),
-                                ),
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.transparent,
-                                    shadowColor: Colors.transparent,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(18),
-                                    ),
-                                    elevation: 0,
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: isSmallScreen ? 24 : 32, 
-                                      vertical: isSmallScreen ? 14 : 18
-                                    ),
-                                    textStyle: TextStyle(
-                                      fontSize: isSmallScreen ? 16 : 18, 
-                                      fontWeight: FontWeight.bold
-                                    ),
-                                  ),
-                                  onPressed: startNewGame,
-                                  child: Text(getText('nextGame')),
-                                ),
-                              ),
-                            ),
-                          ),
-                    ],
-                  ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                  ],
                 ),
-              );
-            },
-          ),
-          Positioned(
-            right: 16,
-            bottom: 12,
-            child: Text(
-              'made by SNO',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
-                fontSize: 17,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 1.2,
+              ),
+            ),
+          );
+        }),
+        
+        if (isPotGuessing)
+          Center(
+            child: Container(
+              width: isSmallScreen ? 250 : 300,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.4),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 6,
+                    spreadRadius: 1,
+                  ),
+                ],
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.5),
+                  width: 1.5,
+                ),
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(isSmallScreen ? 8.0 : 12.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'POT! 금액 입력',
+                      style: TextStyle(
+                        color: Colors.black87,
+                        fontWeight: FontWeight.bold,
+                        fontSize: isSmallScreen ? 16 : 18,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: potGuessController,
+                      decoration: InputDecoration(
+                        hintText: getText('enterPotAmount'),
+                        border: InputBorder.none,
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.4),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12, 
+                          vertical: isSmallScreen ? 8 : 12
+                        ),
+                      ),
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: isSmallScreen ? 16 : 18,
+                      ),
+                      keyboardType: TextInputType.number,
+                      onSubmitted: (value) {
+                        checkPotGuess();
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            vertical: isSmallScreen ? 8 : 12
+                          ),
+                          textStyle: TextStyle(
+                            fontSize: isSmallScreen ? 14 : 15, 
+                            fontWeight: FontWeight.bold
+                          ),
+                        ),
+                        onPressed: checkPotGuess,
+                        child: Text(getText('submit')),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ],
-      ),
+          
+        if (resultMessage.isNotEmpty)
+          Positioned(
+            top: screenHeight * 0.25,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Text(
+                resultMessage,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: isSmallScreen ? 18 : 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          
+        if (showNextGameButton)
+          Positioned(
+            bottom: screenHeight * 0.1,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.deepPurpleAccent.withOpacity(0.65),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    elevation: 0,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isSmallScreen ? 24 : 32, 
+                      vertical: isSmallScreen ? 14 : 18
+                    ),
+                    textStyle: TextStyle(
+                      fontSize: isSmallScreen ? 16 : 18, 
+                      fontWeight: FontWeight.bold
+                    ),
+                  ),
+                  onPressed: startNewGame,
+                  child: Text(getText('nextGame')),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
