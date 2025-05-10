@@ -1,11 +1,11 @@
 {
-    "name": "random_card_new",
-    "short_name": "random_card_new",
+    "name": "PL OMAHA 연습",
+    "short_name": "PL OMAHA 연습",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "PL OMAHA 연습 - 승자 맞추기 & Pot Limit 계산",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
