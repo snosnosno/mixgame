@@ -201,6 +201,9 @@ class _PotLimitPageState extends State<PotLimitPage> {
       int numSteps = ((maxRaise - minRaise) ~/ step) + 1;
       int raiseAmount = minRaise + (numSteps > 1 ? random.nextInt(numSteps) * step : 0);
       
+      // 계산된 레이즈 금액을 설정된 단위(step)에 맞게 반올림
+      raiseAmount = ((raiseAmount + (step ~/ 2)) ~/ step) * step;
+      
       if (raiseAmount > player.chips) {
         // 칩이 부족하면 올인
         print('Action: ALL-IN (부족한 칩) | Player: ${player.name} | 보유 칩: \$${formatAmount(player.chips)} | potLimit: \$${formatAmount(potLimit)}');
@@ -257,6 +260,22 @@ class _PotLimitPageState extends State<PotLimitPage> {
       // 최종 POT 베팅은 플레이어의 최대 베팅 가능 금액과 팟 리밋 중 작은 값
       int totalPlayerChips = player.chips + player.bet;
       int potBet = min(potLimit, totalPlayerChips);
+      
+      // 스몰 블라인드 금액에 따라 베팅 단위 결정하고 해당 단위로 조정
+      int step;
+      if ([1500, 2000, 2500, 3000].contains(smallBlind)) {
+        // SB가 1500, 2000, 2500, 3000일 때는 500단위로 조정
+        step = 500;
+      } else if (smallBlind >= 4000) {
+        // SB가 4000, 5000, 6000, 8000, 10000 이상일 때는 1000단위로 조정
+        step = 1000;
+      } else {
+        // 그 외의 경우는 100단위로 조정
+        step = 100;
+      }
+      
+      // 계산된 POT 베팅 금액을 설정된 단위(step)에 맞게 반올림
+      potBet = ((potBet + (step ~/ 2)) ~/ step) * step;
       
       // 베팅 금액을 저장 (퀴즈용)
       potCorrectAnswer = potBet;
