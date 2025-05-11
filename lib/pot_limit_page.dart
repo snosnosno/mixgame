@@ -65,6 +65,8 @@ class _PotLimitPageState extends State<PotLimitPage> {
   }
 
   String formatAmount(int amount) {
+    // 블라인드가 3000/6000인 경우에만 500단위로 조정하고,
+    // 그 외에는 정확한 금액을 그대로 표시합니다.
     if (smallBlind == 1500 || smallBlind == 3000) {
       return ((amount + 250) ~/ 500 * 500).toString();
     }
@@ -187,8 +189,8 @@ class _PotLimitPageState extends State<PotLimitPage> {
         return;
       }
       
-      // 100단위 랜덤 베팅 (1500/3000 블라인드일 경우 500단위로 조정)
-      int step = smallBlind == 1500 || smallBlind == 3000 || maxRaise > 10000 ? 500 : 100;
+      // 100단위 랜덤 베팅 (1500/3000 블라인드일 경우에만 500단위로 조정)
+      int step = smallBlind == 1500 || smallBlind == 3000 ? 500 : 100;
       int numSteps = ((maxRaise - minRaise) ~/ step) + 1;
       int raiseAmount = minRaise + (numSteps > 1 ? random.nextInt(numSteps) * step : 0);
       
@@ -249,7 +251,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
       int totalPlayerChips = player.chips + player.bet;
       int potBet = min(potLimit, totalPlayerChips);
       
-      // 1500/3000 블라인드일 경우 또는 금액이 10000 초과일 경우 500단위로 조정
+      // 블라인드가 1500/3000인 경우에만 500단위로 조정
       if (smallBlind == 1500 || smallBlind == 3000) {
         potBet = ((potBet + 250) ~/ 500) * 500;
       }

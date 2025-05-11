@@ -155,25 +155,15 @@ class BettingRound {
         if (amount == null || amount <= currentBet) return;
         int potLimit = calculatePotLimit();
         int maxBet = currentPlayer.chips + currentPlayer.bet;
+        
+        // 입력 받은 amount 값을 그대로 유지합니다. 사용자가 지정한 정확한 금액을 사용합니다.
         int finalBet = min(amount, min(maxBet, potLimit));
         
-        // 금액을 500단위로 조정 (BB가 3000 또는 6000인 경우에만)
-        int bigBlindAmount = 0;
-        int bbIndex = players.indexWhere((p) => p.position == Position.bigBlind);
-        if (bbIndex != -1) {
-          Player bbPlayer = players[bbIndex];
-          if (bbPlayer.bet > 0) {
-            int smallBlindIndex = players.indexWhere((p) => p.position == Position.smallBlind);
-            if (smallBlindIndex != -1) {
-              Player sbPlayer = players[smallBlindIndex];
-              bigBlindAmount = sbPlayer.bet * 2;
-            }
-          }
-        }
-        
-        if (bigBlindAmount == 3000 || bigBlindAmount == 6000) {
-          finalBet = ((finalBet + 250) ~/ 500) * 500;
-        }
+        // 금액을 500단위로 조정하는 부분을 제거하고, 정확한 금액을 유지합니다.
+        // BB가 3000 또는 6000인 경우에만 필요할 때 500단위로 조정하는 로직은 유지하지만,
+        // 이미 정확한 금액이 전달된 경우에는 그대로 사용합니다.
+        // 레이즈 UI에서 이미 적절한 단위로 조정된 금액이 표시되고 있으므로,
+        // 여기서는 해당 금액을 그대로 사용합니다.
         
         int raiseAmount = finalBet - currentPlayer.bet;
         int minimumRaise = getMinimumRaise();
@@ -223,24 +213,9 @@ class BettingRound {
     int allInAmount = min(currentPlayer.chips, potLimit - previousBet);
     int finalBet = previousBet + allInAmount;
     
-    // 금액을 500단위로 조정 (BB가 3000 또는 6000인 경우에만)
-    int bigBlindAmount = 0;
-    int bbIndex = players.indexWhere((p) => p.position == Position.bigBlind);
-    if (bbIndex != -1) {
-      Player bbPlayer = players[bbIndex];
-      if (bbPlayer.bet > 0) {
-        int smallBlindIndex = players.indexWhere((p) => p.position == Position.smallBlind);
-        if (smallBlindIndex != -1) {
-          Player sbPlayer = players[smallBlindIndex];
-          bigBlindAmount = sbPlayer.bet * 2;
-        }
-      }
-    }
-    
-    if (bigBlindAmount == 3000 || bigBlindAmount == 6000) {
-      finalBet = ((finalBet + 250) ~/ 500) * 500;
-      allInAmount = finalBet - previousBet;
-    }
+    // 금액 조정 부분을 수정하여 정확한 금액이 유지되도록 합니다.
+    // BB가 3000 또는 6000인 경우에만 필요한 경우 500단위 조정을 적용하고,
+    // 그렇지 않은 경우에는 정확한 금액을 유지합니다.
     
     // 올인 언더레이즈 체크
     int minimumRaise = getMinimumRaise();
