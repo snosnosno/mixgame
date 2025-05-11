@@ -1,11 +1,11 @@
 {
-    "name": "포커 게임",
-    "short_name": "포커 게임",
+    "name": "PL OMAHA 연습",
+    "short_name": "PL OMAHA 연습",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#ffffff",
-    "description": "포커 게임 - 승자 맞추기 & Pot Limit 계산",
+    "background_color": "#0175C2",
+    "theme_color": "#0175C2",
+    "description": "PL OMAHA 연습 - 승자 맞추기 & Pot Limit 계산",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
