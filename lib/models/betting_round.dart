@@ -31,6 +31,43 @@ class BettingRound {
     currentBet = lastRaiseAmount; // 현재 베팅도 BB 금액으로 초기화
   }
 
+  // 블라인드 크기에 따라 적절한 단위로 금액을 조정하는 메서드
+  int adjustAmountByBlindSize(int amount) {
+    int smallBlind = getSmallBlindAmount();
+    int step;
+    
+    if ([1500, 2000, 2500, 3000].contains(smallBlind)) {
+      // SB가 1500, 2000, 2500, 3000일 때는 500단위로 조정
+      step = 500;
+    } else if (smallBlind >= 4000) {
+      // SB가 4000, 5000, 6000, 8000, 10000 이상일 때는 1000단위로 조정
+      step = 1000;
+    } else {
+      // 그 외의 경우는 100단위로 조정
+      step = 100;
+    }
+    
+    // 단위에 맞게 내림 처리
+    return (amount ~/ step) * step;
+  }
+  
+  // 현재 게임의 스몰 블라인드 금액 구하기
+  int getSmallBlindAmount() {
+    int sbIdx = players.indexWhere((p) => p.position == Position.smallBlind);
+    int bbIdx = players.indexWhere((p) => p.position == Position.bigBlind);
+    
+    if (sbIdx != -1 && bbIdx != -1) {
+      // SB와 BB 둘 다 있는 경우, SB 베팅 금액 반환
+      return players[sbIdx].bet;
+    } else if (bbIdx != -1) {
+      // BB만 있는 경우, BB 베팅 금액의 절반 반환
+      return players[bbIdx].bet ~/ 2;
+    } else {
+      // 둘 다 없는 경우 기본값 100 반환
+      return 100;
+    }
+  }
+
   Player get currentPlayer => players[currentPlayerIndex];
 
   void nextPlayer() {
@@ -67,7 +104,11 @@ class BettingRound {
   }
 
   int getCallAmount() {
-    return currentBet - currentPlayer.bet;
+    int rawCallAmount = currentBet - currentPlayer.bet;
+    
+    // 콜 금액도 블라인드 크기에 맞게 조정
+    // (전체 베팅 금액을 조정한 후 현재 베팅을 뺌)
+    return adjustAmountByBlindSize(currentPlayer.bet + rawCallAmount) - currentPlayer.bet;
   }
 
   int calculatePotLimit() {
@@ -89,11 +130,12 @@ class BettingRound {
     return finalPotLimit;
   }
 
-  // 미니멈 레이즈 계산 (언더레이즈 규칙 반영)
+  // 미니멈 레이즈 계산 (언더레이즈 규칙 반영 및 적절한 단위로 조정)
   int getMinimumRaise() {
     int minRaise = currentBet + lastValidRaiseAmount;
     
-    return minRaise;
+    // 블라인드 크기에 맞게 미니멈 레이즈 금액 조정
+    return adjustAmountByBlindSize(minRaise);
   }
 
   void performAction(String action, [int? amount]) {
@@ -103,7 +145,9 @@ class BettingRound {
         nextPlayer();
         break;
       case 'call':
+        // getCallAmount 내에서 이미 조정된 콜 금액 가져오기
         int callAmount = getCallAmount();
+        
         if (callAmount > currentPlayer.chips) {
           allIn();
         } else {
@@ -118,8 +162,11 @@ class BettingRound {
         int potLimit = calculatePotLimit();
         int maxBet = currentPlayer.chips + currentPlayer.bet;
         
-        // 입력 받은 amount 값을 그대로 유지합니다. 사용자가 지정한 정확한 금액을 사용합니다.
-        int finalBet = min(amount, min(maxBet, potLimit));
+        // 입력 받은 amount 값을 블라인드 크기에 따라 적절한 단위로 조정
+        int adjustedAmount = adjustAmountByBlindSize(amount);
+        
+        // 조정된 금액 사용
+        int finalBet = min(adjustedAmount, min(maxBet, potLimit));
         
         int raiseAmount = finalBet - currentPlayer.bet;
         int minimumRaise = getMinimumRaise();
@@ -167,6 +214,10 @@ class BettingRound {
     int potLimit = calculatePotLimit();
     int previousBet = currentPlayer.bet;
     int allInAmount = min(currentPlayer.chips, potLimit - previousBet);
+    
+    // 올인 금액도 블라인드 크기에 따라 조정
+    allInAmount = adjustAmountByBlindSize(allInAmount + previousBet) - previousBet;
+    
     int finalBet = previousBet + allInAmount;
     
     // 올인 언더레이즈 체크

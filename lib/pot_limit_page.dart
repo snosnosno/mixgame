@@ -185,33 +185,12 @@ class _PotLimitPageState extends State<PotLimitPage> {
         return;
       }
       
-      // 스몰 블라인드 금액에 따라 베팅 단위 결정
-      int step;
-      if ([1500, 2000, 2500, 3000].contains(smallBlind)) {
-        // SB가 1500, 2000, 2500, 3000일 때는 500단위로 랜덤 베팅
-        step = 500;
-      } else if (smallBlind >= 4000) {
-        // SB가 4000, 5000, 6000, 8000, 10000 이상일 때는 1000단위로 랜덤 베팅
-        step = 1000;
-      } else {
-        // 그 외의 경우는 100단위로 랜덤 베팅
-        step = 100;
-      }
+      // 베팅 금액 범위 계산
+      int numSteps = ((maxRaise - minRaise) ~/ 100) + 1;
+      int raiseAmount = minRaise + (numSteps > 1 ? random.nextInt(numSteps) * 100 : 0);
       
-      int numSteps = ((maxRaise - minRaise) ~/ step) + 1;
-      int raiseAmount = minRaise + (numSteps > 1 ? random.nextInt(numSteps) * step : 0);
-      
-      // 계산된 레이즈 금액을 설정된 단위(step)에 맞게 반올림
-      raiseAmount = ((raiseAmount + (step ~/ 2)) ~/ step) * step;
-      
-      if (raiseAmount > player.chips) {
-        // 칩이 부족하면 올인
-        print('Action: ALL-IN (부족한 칩) | Player: ${player.name} | 보유 칩: \$${formatAmount(player.chips)} | potLimit: \$${formatAmount(potLimit)}');
-        bettingRound!.performAction('allIn');
-        playerActionHistory[playerIndex].add('ALL-IN: ${formatAmount(player.bet)}');
-        stateChanged = true;
-        return;
-      }
+      // BettingRound 클래스 내부에서 금액 조정 로직을 처리하도록 함
+      // (adjustAmountByBlindSize 메서드가 내부적으로 호출됨)
       
       print('Action: RAISE | Player: ${player.name} | raiseAmount: \$${formatAmount(raiseAmount)}');
       bettingRound!.performAction('raise', raiseAmount);
@@ -220,6 +199,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
       stateChanged = true;
     } else if (action < 50) {
       // 20% 확률로 "콜"
+      // BettingRound 클래스의 getCallAmount 메서드가 이미 금액을 적절히 조정함
       int callAmount = bettingRound!.getCallAmount();
       
       if (callAmount > player.chips) {
@@ -261,21 +241,8 @@ class _PotLimitPageState extends State<PotLimitPage> {
       int totalPlayerChips = player.chips + player.bet;
       int potBet = min(potLimit, totalPlayerChips);
       
-      // 스몰 블라인드 금액에 따라 베팅 단위 결정하고 해당 단위로 조정
-      int step;
-      if ([1500, 2000, 2500, 3000].contains(smallBlind)) {
-        // SB가 1500, 2000, 2500, 3000일 때는 500단위로 조정
-        step = 500;
-      } else if (smallBlind >= 4000) {
-        // SB가 4000, 5000, 6000, 8000, 10000 이상일 때는 1000단위로 조정
-        step = 1000;
-      } else {
-        // 그 외의 경우는 100단위로 조정
-        step = 100;
-      }
-      
-      // 계산된 POT 베팅 금액을 설정된 단위(step)에 맞게 반올림
-      potBet = ((potBet + (step ~/ 2)) ~/ step) * step;
+      // BettingRound 클래스의 adjustAmountByBlindSize 메서드를 통해 
+      // POT 베팅 금액을 적절히 조정하므로 별도 처리 없이 바로 사용
       
       // 베팅 금액을 저장 (퀴즈용)
       potCorrectAnswer = potBet;
