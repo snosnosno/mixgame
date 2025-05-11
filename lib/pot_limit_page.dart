@@ -65,11 +65,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
   }
 
   String formatAmount(int amount) {
-    // 블라인드가 3000/6000인 경우에만 500단위로 조정하고,
-    // 그 외에는 정확한 금액을 그대로 표시합니다.
-    if (smallBlind == 1500 || smallBlind == 3000) {
-      return ((amount + 250) ~/ 500 * 500).toString();
-    }
+    // 모든 경우에 정확한 금액을 그대로 표시합니다.
     return amount.toString();
   }
 
@@ -250,11 +246,6 @@ class _PotLimitPageState extends State<PotLimitPage> {
       // 최종 POT 베팅은 플레이어의 최대 베팅 가능 금액과 팟 리밋 중 작은 값
       int totalPlayerChips = player.chips + player.bet;
       int potBet = min(potLimit, totalPlayerChips);
-      
-      // 블라인드가 1500/3000인 경우에만 500단위로 조정
-      if (smallBlind == 1500 || smallBlind == 3000) {
-        potBet = ((potBet + 250) ~/ 500) * 500;
-      }
       
       // 베팅 금액을 저장 (퀴즈용)
       potCorrectAnswer = potBet;
