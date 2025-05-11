@@ -185,8 +185,19 @@ class _PotLimitPageState extends State<PotLimitPage> {
         return;
       }
       
-      // 100단위 랜덤 베팅 (1500/3000 블라인드일 경우에만 500단위로 조정)
-      int step = smallBlind == 1500 || smallBlind == 3000 ? 500 : 100;
+      // 스몰 블라인드 금액에 따라 베팅 단위 결정
+      int step;
+      if ([1500, 2000, 2500, 3000].contains(smallBlind)) {
+        // SB가 1500, 2000, 2500, 3000일 때는 500단위로 랜덤 베팅
+        step = 500;
+      } else if (smallBlind >= 4000) {
+        // SB가 4000, 5000, 6000, 8000, 10000 이상일 때는 1000단위로 랜덤 베팅
+        step = 1000;
+      } else {
+        // 그 외의 경우는 100단위로 랜덤 베팅
+        step = 100;
+      }
+      
       int numSteps = ((maxRaise - minRaise) ~/ step) + 1;
       int raiseAmount = minRaise + (numSteps > 1 ? random.nextInt(numSteps) * step : 0);
       
