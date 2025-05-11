@@ -86,7 +86,7 @@ class BettingRound {
     // 최종 팟 리밋 (플레이어의 최대 가능 베팅액과 비교하여 더 작은 값 반환)
     int finalPotLimit = min(potLimit, maxPossibleBet);
     
-    // BB가 3000 또는 6000이거나 금액이 10000 초과인 경우 500단위로 조정
+    // BB가 3000 또는 6000인 경우에만 500단위로 조정
     int bigBlindAmount = 0;
     int bbIndex = players.indexWhere((p) => p.position == Position.bigBlind);
     if (bbIndex != -1) {
@@ -101,7 +101,7 @@ class BettingRound {
       }
     }
     
-    if (bigBlindAmount == 3000 || bigBlindAmount == 6000 || finalPotLimit > 10000) {
+    if (bigBlindAmount == 3000 || bigBlindAmount == 6000) {
       finalPotLimit = ((finalPotLimit + 250) ~/ 500) * 500;
     }
     
@@ -112,7 +112,7 @@ class BettingRound {
   int getMinimumRaise() {
     int minRaise = currentBet + lastValidRaiseAmount;
     
-    // BB가 3000 또는 6000이거나 금액이 10000 초과인 경우 500단위로 조정
+    // BB가 3000 또는 6000인 경우에만 500단위로 조정
     int bigBlindAmount = 0;
     int bbIndex = players.indexWhere((p) => p.position == Position.bigBlind);
     if (bbIndex != -1) {
@@ -127,7 +127,7 @@ class BettingRound {
       }
     }
     
-    if (bigBlindAmount == 3000 || bigBlindAmount == 6000 || minRaise > 10000) {
+    if (bigBlindAmount == 3000 || bigBlindAmount == 6000) {
       minRaise = ((minRaise + 250) ~/ 500) * 500;
     }
     
@@ -157,7 +157,7 @@ class BettingRound {
         int maxBet = currentPlayer.chips + currentPlayer.bet;
         int finalBet = min(amount, min(maxBet, potLimit));
         
-        // 금액을 500단위로 조정
+        // 금액을 500단위로 조정 (BB가 3000 또는 6000인 경우에만)
         int bigBlindAmount = 0;
         int bbIndex = players.indexWhere((p) => p.position == Position.bigBlind);
         if (bbIndex != -1) {
@@ -171,7 +171,7 @@ class BettingRound {
           }
         }
         
-        if (bigBlindAmount == 3000 || bigBlindAmount == 6000 || finalBet > 10000) {
+        if (bigBlindAmount == 3000 || bigBlindAmount == 6000) {
           finalBet = ((finalBet + 250) ~/ 500) * 500;
         }
         
@@ -223,7 +223,7 @@ class BettingRound {
     int allInAmount = min(currentPlayer.chips, potLimit - previousBet);
     int finalBet = previousBet + allInAmount;
     
-    // 금액을 500단위로 조정
+    // 금액을 500단위로 조정 (BB가 3000 또는 6000인 경우에만)
     int bigBlindAmount = 0;
     int bbIndex = players.indexWhere((p) => p.position == Position.bigBlind);
     if (bbIndex != -1) {
@@ -237,7 +237,7 @@ class BettingRound {
       }
     }
     
-    if (bigBlindAmount == 3000 || bigBlindAmount == 6000 || finalBet > 10000) {
+    if (bigBlindAmount == 3000 || bigBlindAmount == 6000) {
       finalBet = ((finalBet + 250) ~/ 500) * 500;
       allInAmount = finalBet - previousBet;
     }

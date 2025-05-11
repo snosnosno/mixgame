@@ -65,7 +65,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
   }
 
   String formatAmount(int amount) {
-    if (smallBlind == 1500 || smallBlind == 3000 || amount > 10000) {
+    if (smallBlind == 1500 || smallBlind == 3000) {
       return ((amount + 250) ~/ 500 * 500).toString();
     }
     return amount.toString();
@@ -250,7 +250,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
       int potBet = min(potLimit, totalPlayerChips);
       
       // 1500/3000 블라인드일 경우 또는 금액이 10000 초과일 경우 500단위로 조정
-      if (smallBlind == 1500 || smallBlind == 3000 || potBet > 10000) {
+      if (smallBlind == 1500 || smallBlind == 3000) {
         potBet = ((potBet + 250) ~/ 500) * 500;
       }
       
