@@ -88794,10 +88794,10 @@ return}}p=B.b.hN(n,new A.a5f())
 if(p!==-1)o.c=p},
 u0(){var s,r=this,q=r.a,p=new A.aA(q,new A.a54(r),A.S(q).h("aA<1>")).lk(0,0,new A.a55()),o=r.d,n=q[r.c],m=Math.min(p+o*2,n.b+n.f),l=B.b.hN(q,new A.a56()),k=0
 if(l!==-1)if(q[l].f>0){s=B.b.hN(q,new A.a57())
-k=s!==-1?q[s].f*2:0}return k===3000||k===6000||m>1e4?B.h.eM(m+250,500)*500:m},
+k=s!==-1?q[s].f*2:0}return k===3000||k===6000?B.h.eM(m+250,500)*500:m},
 w5(){var s,r=this.d+this.r,q=this.a,p=B.b.hN(q,new A.a5c()),o=0
 if(p!==-1)if(q[p].f>0){s=B.b.hN(q,new A.a5d())
-o=s!==-1?q[s].f*2:0}return o===3000||o===6000||r>1e4?B.h.eM(r+250,500)*500:r},
+o=s!==-1?q[s].f*2:0}return o===3000||o===6000?B.h.eM(r+250,500)*500:r},
 Ik(a,b){var s,r,q,p,o,n,m,l,k,j,i,h=this
 switch(a){case"check":s=h.d
 if(!(s===0||h.a[h.c].f===s))return
@@ -88823,7 +88823,7 @@ m=Math.min(A.fd(b),r)
 l=B.b.hN(s,new A.a5g())
 k=0
 if(l!==-1)if(s[l].f>0){j=B.b.hN(s,new A.a5h())
-k=j!==-1?s[j].f*2:0}if(k===3000||k===6000||m>1e4)m=B.h.eM(m+250,500)*500
+k=j!==-1?s[j].f*2:0}if(k===3000||k===6000)m=B.h.eM(m+250,500)*500
 i=m-s[h.c].f
 if(m<h.w5())if(m===n)h.f=m-h.d
 else return
@@ -88844,7 +88844,7 @@ break}h.ahV()},
 mJ(a){return this.Ik(a,null)},
 Si(){var s,r,q,p=this,o=p.u0(),n=p.a,m=n[p.c],l=m.f,k=Math.min(m.b,o-l),j=l+k,i=B.b.hN(n,new A.a52()),h=0
 if(i!==-1)if(n[i].f>0){s=B.b.hN(n,new A.a53())
-h=s!==-1?n[s].f*2:0}if(h===3000||h===6000||j>1e4){j=B.h.eM(j+250,500)*500
+h=s!==-1?n[s].f*2:0}if(h===3000||h===6000){j=B.h.eM(j+250,500)*500
 k=j-l}r=p.w5()
 m=p.d
 q=j-m
