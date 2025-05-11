@@ -86,50 +86,12 @@ class BettingRound {
     // 최종 팟 리밋 (플레이어의 최대 가능 베팅액과 비교하여 더 작은 값 반환)
     int finalPotLimit = min(potLimit, maxPossibleBet);
     
-    // BB가 3000 또는 6000인 경우에만 500단위로 조정
-    int bigBlindAmount = 0;
-    int bbIndex = players.indexWhere((p) => p.position == Position.bigBlind);
-    if (bbIndex != -1) {
-      Player bbPlayer = players[bbIndex];
-      // 플레이어의 베팅 금액이 그동안 변경됐을 수 있으므로 실제 BB를 계산
-      if (bbPlayer.bet > 0) {
-        int smallBlindIndex = players.indexWhere((p) => p.position == Position.smallBlind);
-        if (smallBlindIndex != -1) {
-          Player sbPlayer = players[smallBlindIndex];
-          bigBlindAmount = sbPlayer.bet * 2; // SB가 1500이면 BB는 3000
-        }
-      }
-    }
-    
-    if (bigBlindAmount == 3000 || bigBlindAmount == 6000) {
-      finalPotLimit = ((finalPotLimit + 250) ~/ 500) * 500;
-    }
-    
     return finalPotLimit;
   }
 
   // 미니멈 레이즈 계산 (언더레이즈 규칙 반영)
   int getMinimumRaise() {
     int minRaise = currentBet + lastValidRaiseAmount;
-    
-    // BB가 3000 또는 6000인 경우에만 500단위로 조정
-    int bigBlindAmount = 0;
-    int bbIndex = players.indexWhere((p) => p.position == Position.bigBlind);
-    if (bbIndex != -1) {
-      Player bbPlayer = players[bbIndex];
-      // 플레이어의 베팅 금액이 그동안 변경됐을 수 있으므로 실제 BB를 계산
-      if (bbPlayer.bet > 0) {
-        int smallBlindIndex = players.indexWhere((p) => p.position == Position.smallBlind);
-        if (smallBlindIndex != -1) {
-          Player sbPlayer = players[smallBlindIndex];
-          bigBlindAmount = sbPlayer.bet * 2; // SB가 1500이면 BB는 3000
-        }
-      }
-    }
-    
-    if (bigBlindAmount == 3000 || bigBlindAmount == 6000) {
-      minRaise = ((minRaise + 250) ~/ 500) * 500;
-    }
     
     return minRaise;
   }
@@ -158,12 +120,6 @@ class BettingRound {
         
         // 입력 받은 amount 값을 그대로 유지합니다. 사용자가 지정한 정확한 금액을 사용합니다.
         int finalBet = min(amount, min(maxBet, potLimit));
-        
-        // 금액을 500단위로 조정하는 부분을 제거하고, 정확한 금액을 유지합니다.
-        // BB가 3000 또는 6000인 경우에만 필요할 때 500단위로 조정하는 로직은 유지하지만,
-        // 이미 정확한 금액이 전달된 경우에는 그대로 사용합니다.
-        // 레이즈 UI에서 이미 적절한 단위로 조정된 금액이 표시되고 있으므로,
-        // 여기서는 해당 금액을 그대로 사용합니다.
         
         int raiseAmount = finalBet - currentPlayer.bet;
         int minimumRaise = getMinimumRaise();
@@ -212,10 +168,6 @@ class BettingRound {
     int previousBet = currentPlayer.bet;
     int allInAmount = min(currentPlayer.chips, potLimit - previousBet);
     int finalBet = previousBet + allInAmount;
-    
-    // 금액 조정 부분을 수정하여 정확한 금액이 유지되도록 합니다.
-    // BB가 3000 또는 6000인 경우에만 필요한 경우 500단위 조정을 적용하고,
-    // 그렇지 않은 경우에는 정확한 금액을 유지합니다.
     
     // 올인 언더레이즈 체크
     int minimumRaise = getMinimumRaise();
