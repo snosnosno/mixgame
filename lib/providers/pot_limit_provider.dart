@@ -235,10 +235,10 @@ class PotLimitProvider extends ChangeNotifier {
     // 저장된 값이 있으면 확실하게 그 값을 사용하도록 확실히 함
     if (potLastCurrentPot != null && potLastCurrentPot! > 0) {
       currentPot = potLastCurrentPot!;
-      
+    
       // 베팅한 모든 플레이어(현재 POT!을 외친 플레이어 제외, 폴드한 플레이어 포함)
       List<Player> bettingPlayersExceptCurrent = players.where((p) => p.bet > 0 && p != currentPlayer).toList();
-      
+    
       // 저장된 현재팟 값이 있으면 그 값을 기반으로 표시
       potDetailsStr = bettingPlayersExceptCurrent.map((p) {
         String posName = '';
@@ -277,7 +277,7 @@ class PotLimitProvider extends ChangeNotifier {
           case Position.cutoff: posName = '(CO)'; break;
           case Position.dealer: posName = '(DEALER)'; break;
           default: posName = '';
-        }
+      }
         return '${p.bet}$posName';
       }).join(' + ');
       
@@ -285,7 +285,7 @@ class PotLimitProvider extends ChangeNotifier {
         potDetailsStr += ' = $currentPot';
       } else if (bettingPlayersExceptCurrent.isEmpty) {
         potDetailsStr = '0';
-      }
+    }
     }
     // 계산식은 저장된 값 사용
     int calculatedPotLimit = currentPot + callAmount * 2;
@@ -438,22 +438,22 @@ $correctAnswerText
     } else {
       // 일반적인 랜덤 액션 결정
       int action = random.nextInt(100);
-      
-      if (action < 30) {
-        // 30% 확률로 "레이즈"
-        stateChanged = _performRaiseAction(player, playerIndex, random);
-      } else if (action < 50) {
-        // 20% 확률로 "콜"
-        stateChanged = _performCallAction(player, playerIndex);
-      } else if (action < 70) {
-        // 20% 확률로 "폴드"
-        debugPrint('Action: FOLD | Player: ${player.name}');
-        bettingRound!.performAction('fold');
-        playerActionHistory[playerIndex].add('FOLD');
-        stateChanged = true;
-      } else {
-        // 30% 확률로 "POT!" (항상 최대금액으로 베팅)
-        stateChanged = _performPotAction(player, playerIndex);
+
+    if (action < 30) {
+      // 30% 확률로 "레이즈"
+      stateChanged = _performRaiseAction(player, playerIndex, random);
+    } else if (action < 50) {
+      // 20% 확률로 "콜"
+      stateChanged = _performCallAction(player, playerIndex);
+    } else if (action < 70) {
+      // 20% 확률로 "폴드"
+      debugPrint('Action: FOLD | Player: ${player.name}');
+      bettingRound!.performAction('fold');
+      playerActionHistory[playerIndex].add('FOLD');
+      stateChanged = true;
+    } else {
+      // 30% 확률로 "POT!" (항상 최대금액으로 베팅)
+      stateChanged = _performPotAction(player, playerIndex);
       }
     }
     

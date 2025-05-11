@@ -65,7 +65,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
   }
 
   String formatAmount(int amount) {
-    if (smallBlind == 1500) {
+    if (smallBlind == 1500 || smallBlind == 3000 || amount > 10000) {
       return ((amount + 250) ~/ 500 * 500).toString();
     }
     return amount.toString();
@@ -157,9 +157,9 @@ class _PotLimitPageState extends State<PotLimitPage> {
 
     print('--- Player Status ---');
     for (var p in players) {
-      print('${p.name} | chips: \$${p.chips} | bet: \$${p.bet} | isAllIn: ${p.isAllIn} | isFolded: ${p.isFolded}');
+      print('${p.name} | chips: \$${formatAmount(p.chips)} | bet: \$${formatAmount(p.bet)} | isAllIn: ${p.isAllIn} | isFolded: ${p.isFolded}');
     }
-    print('lastRaiseAmount: \$${bettingRound?.lastRaiseAmount}');
+    print('lastRaiseAmount: \$${formatAmount(bettingRound?.lastRaiseAmount ?? 0)}');
 
     final random = Random();
     int action = random.nextInt(100);
@@ -180,7 +180,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
       
       if (maxRaise < minRaise) {
         // 칩이 부족하면 팟 리밋 내에서 올인
-        print('Action: ALL-IN (부족한 칩) | Player: ${player.name} | 보유 칩: \$${player.chips} | potLimit: \$${potLimit}');
+        print('Action: ALL-IN (부족한 칩) | Player: ${player.name} | 보유 칩: \$${formatAmount(player.chips)} | potLimit: \$${formatAmount(potLimit)}');
         bettingRound!.performAction('allIn');
         playerActionHistory[playerIndex].add('ALL-IN: ${formatAmount(player.bet)}');
         stateChanged = true;
@@ -188,20 +188,20 @@ class _PotLimitPageState extends State<PotLimitPage> {
       }
       
       // 100단위 랜덤 베팅 (1500/3000 블라인드일 경우 500단위로 조정)
-      int step = smallBlind == 1500 ? 500 : 100;
+      int step = smallBlind == 1500 || smallBlind == 3000 || maxRaise > 10000 ? 500 : 100;
       int numSteps = ((maxRaise - minRaise) ~/ step) + 1;
       int raiseAmount = minRaise + (numSteps > 1 ? random.nextInt(numSteps) * step : 0);
       
       if (raiseAmount > player.chips) {
         // 칩이 부족하면 올인
-        print('Action: ALL-IN (부족한 칩) | Player: ${player.name} | 보유 칩: \$${player.chips} | potLimit: \$${potLimit}');
+        print('Action: ALL-IN (부족한 칩) | Player: ${player.name} | 보유 칩: \$${formatAmount(player.chips)} | potLimit: \$${formatAmount(potLimit)}');
         bettingRound!.performAction('allIn');
         playerActionHistory[playerIndex].add('ALL-IN: ${formatAmount(player.bet)}');
         stateChanged = true;
         return;
       }
       
-      print('Action: RAISE | Player: ${player.name} | raiseAmount: \$${raiseAmount}');
+      print('Action: RAISE | Player: ${player.name} | raiseAmount: \$${formatAmount(raiseAmount)}');
       bettingRound!.performAction('raise', raiseAmount);
       playerActionHistory[playerIndex].add('RAISE: ${formatAmount(raiseAmount)}');
       raiseCount++;
@@ -212,11 +212,11 @@ class _PotLimitPageState extends State<PotLimitPage> {
       
       if (callAmount > player.chips) {
         // 칩이 부족하면 올인
-        print('Action: ALL-IN (콜 금액 부족) | Player: ${player.name} | 보유 칩: \$${player.chips} | 콜 금액: \$${callAmount}');
+        print('Action: ALL-IN (콜 금액 부족) | Player: ${player.name} | 보유 칩: \$${formatAmount(player.chips)} | 콜 금액: \$${formatAmount(callAmount)}');
         bettingRound!.performAction('allIn');
         playerActionHistory[playerIndex].add('ALL-IN: ${formatAmount(player.bet)}');
       } else {
-        print('Action: CALL | Player: ${player.name} | callAmount: \$${callAmount}');
+        print('Action: CALL | Player: ${player.name} | callAmount: \$${formatAmount(callAmount)}');
         bettingRound!.performAction('call');
         
         // 포지션이 BB 또는 SB인 경우 이미 블라인드를 냈으므로 총액 표시
@@ -249,19 +249,19 @@ class _PotLimitPageState extends State<PotLimitPage> {
       int totalPlayerChips = player.chips + player.bet;
       int potBet = min(potLimit, totalPlayerChips);
       
-      // 1500/3000 블라인드일 경우 500단위로 조정
-      if (smallBlind == 1500) {
-        potBet = (potBet ~/ 500) * 500;
+      // 1500/3000 블라인드일 경우 또는 금액이 10000 초과일 경우 500단위로 조정
+      if (smallBlind == 1500 || smallBlind == 3000 || potBet > 10000) {
+        potBet = ((potBet + 250) ~/ 500) * 500;
       }
       
       // 베팅 금액을 저장 (퀴즈용)
       potCorrectAnswer = potBet;
       
       print('------ POT! 계산 상세 ------');
-      print('현재 팟: \$${currentPot} | 콜 금액: \$${callAmount}');
-      print('플레이어 총 칩: \$${totalPlayerChips} | 팟 리밋: \$${potLimit}');
-      print('최종 POT 베팅: \$${potBet}');
-      print('Action: POT! | Player: ${player.name} | potBet: \$${potBet}');
+      print('현재 팟: \$${formatAmount(currentPot)} | 콜 금액: \$${formatAmount(callAmount)}');
+      print('플레이어 총 칩: \$${formatAmount(totalPlayerChips)} | 팟 리밋: \$${formatAmount(potLimit)}');
+      print('최종 POT 베팅: \$${formatAmount(potBet)}');
+      print('Action: POT! | Player: ${player.name} | potBet: \$${formatAmount(potBet)}');
       
       // POT 액션 수행 - 팟 리밋을 존중
       if (player.chips <= potLimit - player.bet) {

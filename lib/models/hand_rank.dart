@@ -33,7 +33,32 @@ class HandRank {
     }
 
     if (_isStraight(cards)) {
-      return HandRank(5, 'Straight', cards, _getHighestRank(cards));
+      int highestRank = _getHighestRank(cards);
+      String straightName = 'Straight';
+      
+      // A-2-3-4-5 스트레이트는 '5-high Straight'로 표시
+      var ranks = cards.map((c) => c.rank.index).toList();
+      if (ranks.contains(poker.Rank.ace.index) &&
+          ranks.contains(poker.Rank.two.index) &&
+          ranks.contains(poker.Rank.three.index) &&
+          ranks.contains(poker.Rank.four.index) &&
+          ranks.contains(poker.Rank.five.index)) {
+        straightName = '5-high Straight';
+      } else {
+        // 다른 스트레이트는 가장 높은 카드로 표시
+        String highCardName;
+        int highestCardIndex = cards.map((c) => c.rank.index).reduce(max);
+        
+        if (highestCardIndex == poker.Rank.ace.index) highCardName = 'A';
+        else if (highestCardIndex == poker.Rank.king.index) highCardName = 'K';
+        else if (highestCardIndex == poker.Rank.queen.index) highCardName = 'Q';
+        else if (highestCardIndex == poker.Rank.jack.index) highCardName = 'J';
+        else highCardName = (highestCardIndex + 2).toString();
+        
+        straightName = '$highCardName-high Straight';
+      }
+      
+      return HandRank(5, straightName, cards, highestRank);
     }
 
     if (_isThreeOfAKind(cards)) {
@@ -52,7 +77,24 @@ class HandRank {
   }
 
   static int _getHighestRank(List<poker.Card> cards) {
-    return cards.map((c) => c.rank.index).reduce((a, b) => a > b ? a : b);
+    int highestRank = cards.map((c) => c.rank.index).reduce(max);
+    
+    if (_isStraight(cards)) {
+      var ranks = cards.map((c) => c.rank.index).toList();
+      
+      bool isWheel = ranks.contains(poker.Rank.ace.index) &&
+                      ranks.contains(poker.Rank.two.index) &&
+                      ranks.contains(poker.Rank.three.index) &&
+                      ranks.contains(poker.Rank.four.index) &&
+                      ranks.contains(poker.Rank.five.index) &&
+                      !ranks.contains(poker.Rank.six.index);
+      
+      if (isWheel) {
+        return poker.Rank.five.index;
+      }
+    }
+    
+    return highestRank;
   }
 
   static int _getOnePairRank(List<poker.Card> cards) {

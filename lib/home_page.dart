@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'pages/winner_game_page.dart';
 import 'pages/pot_limit_page.dart';
 import 'pages/pot_limit_calculator_page.dart';
+import 'pages/hi_low_game_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // 앱 전체에서 공유할 언어 설정
@@ -16,6 +17,7 @@ class AppLanguage {
   static const Map<String, String> ko = {
     'appTitle': 'PL OMAHA 연습',
     'boardReading': '보드 리딩',
+    'hiLowBoardReading': 'Hi/Low 보드리딩',
     'potLimitCalculation': '팟 리밋 계산',
     'potLimitCalculator': '팟 리밋 계산기',
     'donate': '후원하기',
@@ -24,6 +26,7 @@ class AppLanguage {
     'language': '언어',
     'madeBy': 'made by SNO',
     'boardReadingDescription': '이 게임은 오마하 포커의 보드 리딩 능력을 향상시키는 훈련입니다. 다양한 핸드와 커뮤니티 카드를 분석하여 승자를 맞추는 연습을 할 수 있습니다.',
+    'hiLowBoardReadingDescription': '이 게임은 오마하 Hi/Low 포커의 보드 리딩 능력을 향상시키는 훈련입니다. 하이 핸드와 로우 핸드를 모두 고려하여 승자를 판별하는 연습을 할 수 있습니다.',
     'potLimitDescription': '오마하 포커에서 중요한 팟 리밋 베팅 금액을 계산하는 연습입니다. 다양한 상황에서 정확한 팟 리밋 금액을 빠르게 계산하는 능력을 키울 수 있습니다.',
     'boardReadingGuide': '오마하 포커 보드 리딩 가이드',
     'startGame': '게임 시작',
@@ -89,6 +92,7 @@ class AppLanguage {
   static const Map<String, String> en = {
     'appTitle': 'PL OMAHA Practice',
     'boardReading': 'Board Reading',
+    'hiLowBoardReading': 'Hi/Low Board Reading',
     'potLimitCalculation': 'Pot Limit Calculation',
     'potLimitCalculator': 'Pot Limit Calculator',
     'donate': 'Donate',
@@ -97,6 +101,7 @@ class AppLanguage {
     'language': 'Language',
     'madeBy': 'made by SNO',
     'boardReadingDescription': 'This game helps you improve your board reading skills in Omaha Poker. Practice analyzing various hands and community cards to find the winner.',
+    'hiLowBoardReadingDescription': 'This game helps you improve your board reading skills in Omaha Hi/Low Poker. Practice analyzing both high hands and low hands to determine the winners.',
     'potLimitDescription': 'Practice calculating pot limit betting amounts in Omaha Poker. Develop your ability to quickly calculate accurate pot limit amounts in various situations.',
     'boardReadingGuide': 'Omaha Poker Board Reading Guide',
     'startGame': 'Start Game',
@@ -257,6 +262,8 @@ class _HomePageState extends State<HomePage> {
     String descriptionKey = '';
     if (gameKey == 'boardReading') {
       descriptionKey = 'boardReadingDescription';
+    } else if (gameKey == 'hiLowBoardReading') {
+      descriptionKey = 'hiLowBoardReadingDescription';
     } else if (gameKey == 'potLimitCalculation') {
       descriptionKey = 'potLimitDescription';
     } else if (gameKey == 'potLimitCalculator') {
@@ -420,6 +427,15 @@ class _HomePageState extends State<HomePage> {
                         context,
                         'boardReading',
                         const WinnerGamePage(),
+                        isMobile,
+                        isTablet,
+                        isDesktop,
+                      ),
+                      SizedBox(height: isMobile ? 16 : 24),
+                      _buildGameButton(
+                        context,
+                        'hiLowBoardReading',
+                        const HiLowGamePage(),
                         isMobile,
                         isTablet,
                         isDesktop,

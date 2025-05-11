@@ -609,34 +609,33 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
         child: SafeArea(
           child: Column(
             children: [
-              // 상단 점수 및 타이머 표시
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      isReviewMode 
-                          ? '${getText("review")}: ${currentReviewIndex + 1}/${replayRounds.length}'
-                          : '${getText("score")}: $currentScore',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (isGameStarted && !isReviewMode)
+              // 상단 점수 및 타이머 표시 - 리뷰 모드일 때는 제거 (리뷰 UI에 통합됨)
+              if (!isReviewMode)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
                       Text(
-                        '${getText("remainingTime")}: $remainingTime ${getText("seconds")}',
+                        '${getText("score")}: $currentScore',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                  ],
+                      if (isGameStarted)
+                        Text(
+                          '${getText("remainingTime")}: $remainingTime ${getText("seconds")}',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
               
               // 게임 영역
               Expanded(
@@ -1115,35 +1114,65 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
     
     return Column(
       children: [
-        // 라운드 정보 및 탐색 버튼
-        Container(
-          margin: const EdgeInsets.symmetric(vertical: 8.0),
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(30),
-          ),
+        // 리뷰 정보와 라운드 탐색 버튼을 하나의 행으로 통합
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              IconButton(
-                icon: Icon(Icons.arrow_back_ios, color: Colors.white),
-                onPressed: currentReviewIndex > 0 ? previousReviewRound : null,
-                iconSize: 20,
-              ),
-              Text(
-                '${getText("round")} ${currentReviewIndex + 1}',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              // 리뷰 정보
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  '${getText("review")}: ${currentReviewIndex + 1}/${replayRounds.length}',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              IconButton(
-                icon: Icon(Icons.arrow_forward_ios, color: Colors.white),
-                onPressed: currentReviewIndex < replayRounds.length - 1 ? nextReviewRound : null,
-                iconSize: 20,
+              
+              SizedBox(width: 12),
+              
+              // 라운드 탐색 컨트롤
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+                      onPressed: currentReviewIndex > 0 ? previousReviewRound : null,
+                      iconSize: 16,
+                      padding: EdgeInsets.zero,
+                      constraints: BoxConstraints(minWidth: 24, minHeight: 24),
+                    ),
+                    Text(
+                      '${getText("round")} ${currentReviewIndex + 1}',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.arrow_forward_ios, color: Colors.white),
+                      onPressed: currentReviewIndex < replayRounds.length - 1 ? nextReviewRound : null,
+                      iconSize: 16,
+                      padding: EdgeInsets.zero,
+                      constraints: BoxConstraints(minWidth: 24, minHeight: 24),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -1151,29 +1180,29 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
         
         // 커뮤니티 카드 영역
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(4.0),
           child: Column(
             children: [
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.amber.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
                   getText('communityCards'),
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              SizedBox(height: 8),
+              SizedBox(height: 4),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: replayingRound!.communityCards
-                    .map((card) => _buildCard(card, margin: 4))
+                    .map((card) => _buildCard(card, margin: 2))
                     .toList(),
               ),
             ],
@@ -1183,27 +1212,20 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
         // 결과 메시지 영역
         if (replayingRound!.winnerText.isNotEmpty)
           Container(
-            margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            padding: EdgeInsets.all(12),
+            margin: EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+            padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
-                ),
-              ],
             ),
             child: Text(
               replayingRound!.winnerText,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
-                height: 1.3,
+                height: 1.2,
               ),
               textAlign: TextAlign.center,
             ),
@@ -1212,10 +1234,10 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
         // 플레이어 카드 영역
         Expanded(
           child: GridView.builder(
-            padding: EdgeInsets.all(8),
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              childAspectRatio: 1.5,
+              childAspectRatio: 1.4,
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
             ),
@@ -1413,21 +1435,22 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
           ),
         ),
         
-        // 리뷰 종료 버튼
+        // 리뷰 종료 버튼 - 하단 여백 최소화
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          padding: const EdgeInsets.only(bottom: 8.0),
           child: ElevatedButton.icon(
             onPressed: endReviewMode,
-            icon: Icon(Icons.arrow_back),
+            icon: Icon(Icons.arrow_back, size: 16),
             label: Text(getText('endReplay')),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: Color(0xFF1B5E20),
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(20),
               ),
-              elevation: 3,
+              minimumSize: Size(120, 36),
+              elevation: 2,
             ),
           ),
         ),

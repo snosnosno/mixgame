@@ -86,12 +86,52 @@ class BettingRound {
     // 최종 팟 리밋 (플레이어의 최대 가능 베팅액과 비교하여 더 작은 값 반환)
     int finalPotLimit = min(potLimit, maxPossibleBet);
     
+    // BB가 3000 또는 6000이거나 금액이 10000 초과인 경우 500단위로 조정
+    int bigBlindAmount = 0;
+    int bbIndex = players.indexWhere((p) => p.position == Position.bigBlind);
+    if (bbIndex != -1) {
+      Player bbPlayer = players[bbIndex];
+      // 플레이어의 베팅 금액이 그동안 변경됐을 수 있으므로 실제 BB를 계산
+      if (bbPlayer.bet > 0) {
+        int smallBlindIndex = players.indexWhere((p) => p.position == Position.smallBlind);
+        if (smallBlindIndex != -1) {
+          Player sbPlayer = players[smallBlindIndex];
+          bigBlindAmount = sbPlayer.bet * 2; // SB가 1500이면 BB는 3000
+        }
+      }
+    }
+    
+    if (bigBlindAmount == 3000 || bigBlindAmount == 6000 || finalPotLimit > 10000) {
+      finalPotLimit = ((finalPotLimit + 250) ~/ 500) * 500;
+    }
+    
     return finalPotLimit;
   }
 
   // 미니멈 레이즈 계산 (언더레이즈 규칙 반영)
   int getMinimumRaise() {
-    return currentBet + lastValidRaiseAmount;
+    int minRaise = currentBet + lastValidRaiseAmount;
+    
+    // BB가 3000 또는 6000이거나 금액이 10000 초과인 경우 500단위로 조정
+    int bigBlindAmount = 0;
+    int bbIndex = players.indexWhere((p) => p.position == Position.bigBlind);
+    if (bbIndex != -1) {
+      Player bbPlayer = players[bbIndex];
+      // 플레이어의 베팅 금액이 그동안 변경됐을 수 있으므로 실제 BB를 계산
+      if (bbPlayer.bet > 0) {
+        int smallBlindIndex = players.indexWhere((p) => p.position == Position.smallBlind);
+        if (smallBlindIndex != -1) {
+          Player sbPlayer = players[smallBlindIndex];
+          bigBlindAmount = sbPlayer.bet * 2; // SB가 1500이면 BB는 3000
+        }
+      }
+    }
+    
+    if (bigBlindAmount == 3000 || bigBlindAmount == 6000 || minRaise > 10000) {
+      minRaise = ((minRaise + 250) ~/ 500) * 500;
+    }
+    
+    return minRaise;
   }
 
   void performAction(String action, [int? amount]) {
@@ -116,6 +156,25 @@ class BettingRound {
         int potLimit = calculatePotLimit();
         int maxBet = currentPlayer.chips + currentPlayer.bet;
         int finalBet = min(amount, min(maxBet, potLimit));
+        
+        // 금액을 500단위로 조정
+        int bigBlindAmount = 0;
+        int bbIndex = players.indexWhere((p) => p.position == Position.bigBlind);
+        if (bbIndex != -1) {
+          Player bbPlayer = players[bbIndex];
+          if (bbPlayer.bet > 0) {
+            int smallBlindIndex = players.indexWhere((p) => p.position == Position.smallBlind);
+            if (smallBlindIndex != -1) {
+              Player sbPlayer = players[smallBlindIndex];
+              bigBlindAmount = sbPlayer.bet * 2;
+            }
+          }
+        }
+        
+        if (bigBlindAmount == 3000 || bigBlindAmount == 6000 || finalBet > 10000) {
+          finalBet = ((finalBet + 250) ~/ 500) * 500;
+        }
+        
         int raiseAmount = finalBet - currentPlayer.bet;
         int minimumRaise = getMinimumRaise();
         
@@ -163,6 +222,26 @@ class BettingRound {
     int previousBet = currentPlayer.bet;
     int allInAmount = min(currentPlayer.chips, potLimit - previousBet);
     int finalBet = previousBet + allInAmount;
+    
+    // 금액을 500단위로 조정
+    int bigBlindAmount = 0;
+    int bbIndex = players.indexWhere((p) => p.position == Position.bigBlind);
+    if (bbIndex != -1) {
+      Player bbPlayer = players[bbIndex];
+      if (bbPlayer.bet > 0) {
+        int smallBlindIndex = players.indexWhere((p) => p.position == Position.smallBlind);
+        if (smallBlindIndex != -1) {
+          Player sbPlayer = players[smallBlindIndex];
+          bigBlindAmount = sbPlayer.bet * 2;
+        }
+      }
+    }
+    
+    if (bigBlindAmount == 3000 || bigBlindAmount == 6000 || finalBet > 10000) {
+      finalBet = ((finalBet + 250) ~/ 500) * 500;
+      allInAmount = finalBet - previousBet;
+    }
+    
     // 올인 언더레이즈 체크
     int minimumRaise = getMinimumRaise();
     
