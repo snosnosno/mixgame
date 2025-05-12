@@ -65,8 +65,28 @@ class _PotLimitPageState extends State<PotLimitPage> {
   }
 
   String formatAmount(int amount) {
-    // 모든 경우에 정확한 금액을 그대로 표시합니다.
-    return amount.toString();
+    // 스몰 블라인드 크기에 따라 화면에 표시되는 금액을 적절한 단위로 반올림
+    int step;
+    
+    if ([1500, 2000, 2500, 3000].contains(smallBlind)) {
+      // SB가 1500, 2000, 2500, 3000일 때는 500단위로 표시
+      step = 500;
+    } else if (smallBlind >= 4000) {
+      // SB가 4000, 5000, 6000, 8000, 10000 이상일 때는 1000단위로 표시
+      step = 1000;
+    } else {
+      // 그 외의 경우는 100단위로 표시
+      step = 100;
+    }
+    
+    // 100 이하의 블라인드 금액은 정확히 표시
+    if (amount <= 100 || amount == smallBlind || amount == bigBlind) {
+      return amount.toString();
+    }
+    
+    // 단위에 맞게 반올림 처리 (표시 용도로만 사용)
+    int roundedAmount = ((amount + (step ~/ 2)) ~/ step) * step;
+    return roundedAmount.toString();
   }
 
   void initializePlayers() {
@@ -194,6 +214,8 @@ class _PotLimitPageState extends State<PotLimitPage> {
       
       print('Action: RAISE | Player: ${player.name} | raiseAmount: \$${formatAmount(raiseAmount)}');
       bettingRound!.performAction('raise', raiseAmount);
+      // 금액 표시용 문자열과 실제 금액 계산용 값을 분리
+      // 화면에 표시할 때는 반올림된 금액으로 표시 (500/1000 단위)
       playerActionHistory[playerIndex].add('RAISE: ${formatAmount(raiseAmount)}');
       raiseCount++;
       stateChanged = true;
@@ -244,7 +266,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
       // BettingRound 클래스의 adjustAmountByBlindSize 메서드를 통해 
       // POT 베팅 금액을 적절히 조정하므로 별도 처리 없이 바로 사용
       
-      // 베팅 금액을 저장 (퀴즈용)
+      // 베팅 금액을 저장 (퀴즈용) - 정확한 계산값 저장
       potCorrectAnswer = potBet;
       
       print('------ POT! 계산 상세 ------');
@@ -317,14 +339,42 @@ class _PotLimitPageState extends State<PotLimitPage> {
   void checkPotGuess() {
     int userGuess = int.tryParse(potGuessController.text) ?? 0;
     int correctPot = potCorrectAnswer ?? 0;
+    
+    // 현재 팟 금액 계산 (현재 모든 플레이어의 베팅 합계)
+    int currentPot = 0;
+    for (var p in players) {
+      if (!p.isFolded) {
+        currentPot += p.bet;
+      }
+    }
+    
+    // 마지막 콜/레이즈 금액 계산
+    int lastActionAmount = 0;
+    for (int i = 0; i < players.length; i++) {
+      if (playerActionHistory[i].isNotEmpty) {
+        String lastAction = playerActionHistory[i].last;
+        if (lastAction.contains('RAISE:')) {
+          lastActionAmount = int.tryParse(lastAction.split(':')[1].trim()) ?? 0;
+          break;
+        }
+      }
+    }
+    
     print('--- CHECK POT GUESS ---');
     print('User guess: \$${userGuess} | Correct: \$${correctPot}');
+    print('Current pot: \$${currentPot} | Last action amount: \$${lastActionAmount}');
+    
     setState(() {
       if (userGuess == correctPot) {
         currentScore++;
         resultMessage = '${getText("correctAnswer")}$currentScore';
       } else {
-        resultMessage = '${getText("wrongAnswer")}${formatAmount(correctPot)}';
+        // 계산식 표시를 위한 반올림된 금액들
+        String formattedCurrentPot = formatAmount(currentPot);
+        String formattedLastAmount = formatAmount(lastActionAmount);
+        String formattedTotal = formatAmount(correctPot);
+        
+        resultMessage = '${getText("wrongAnswer")}${formattedTotal}';
       }
       showNextGameButton = true;
       for (var p in players) {
