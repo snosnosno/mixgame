@@ -200,6 +200,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
         // 칩이 부족하면 팟 리밋 내에서 올인
         print('Action: ALL-IN (부족한 칩) | Player: ${player.name} | 보유 칩: \$${formatAmount(player.chips)} | potLimit: \$${formatAmount(potLimit)}');
         bettingRound!.performAction('allIn');
+        // 실제 베팅된 금액을 기준으로 표시
         playerActionHistory[playerIndex].add('ALL-IN: ${formatAmount(player.bet)}');
         stateChanged = true;
         return;
@@ -209,18 +210,17 @@ class _PotLimitPageState extends State<PotLimitPage> {
       int numSteps = ((maxRaise - minRaise) ~/ 100) + 1;
       int raiseAmount = minRaise + (numSteps > 1 ? random.nextInt(numSteps) * 100 : 0);
       
-      // BettingRound 클래스 내부에서 금액 조정 로직을 처리하도록 함
-      // (adjustAmountByBlindSize 메서드가 내부적으로 호출됨)
-      
-      // 금액 표시용 문자열과 실제 금액 계산용 값을 분리
-      // 화면에 표시할 때는 반올림된 금액으로 표시 (500/1000 단위)
-      playerActionHistory[playerIndex].add('RAISE: ${formatAmount(raiseAmount)}');
-
       // 금액 표시용 문자열과 실제 금액 계산용 값을 분리
       // 화면에 표시할 때는 실제 베팅된 금액을 formatAmount로 표시 (UI와 로그 일치)
       print('Action: RAISE | Player: ${player.name} | raiseAmount: \$${formatAmount(raiseAmount)}');
+      
+      // 액션 중복 표시 해결을 위해 playerActionHistory 초기화
+      playerActionHistory[playerIndex].clear();
+      
+      // 실제 베팅 실행
       bettingRound!.performAction('raise', raiseAmount);
-      // 실제 베팅된 금액을 기준으로 표시 (player.bet)
+      
+      // 베팅 실행 후 실제 적용된 금액을 표시 (UI와 로그 일치)
       playerActionHistory[playerIndex].add('RAISE: ${formatAmount(player.bet)}');
       raiseCount++;
       stateChanged = true;
@@ -233,20 +233,21 @@ class _PotLimitPageState extends State<PotLimitPage> {
         // 칩이 부족하면 올인
         print('Action: ALL-IN (콜 금액 부족) | Player: ${player.name} | 보유 칩: \$${formatAmount(player.chips)} | 콜 금액: \$${formatAmount(callAmount)}');
         bettingRound!.performAction('allIn');
+        // 실제 베팅된 금액을 기준으로 표시
         playerActionHistory[playerIndex].add('ALL-IN: ${formatAmount(player.bet)}');
       } else {
         print('Action: CALL | Player: ${player.name} | callAmount: \$${formatAmount(callAmount)}');
+        
+        // 액션 표시 전에 초기화
+        if (player.position != Position.bigBlind && player.position != Position.smallBlind) {
+          playerActionHistory[playerIndex].clear();
+        }
+        
         bettingRound!.performAction('call');
         
-        // 포지션이 BB 또는 SB인 경우 이미 블라인드를 냈으므로 총액 표시
-        if (player.position == Position.bigBlind || player.position == Position.smallBlind) {
-          // 총 베팅액을 CALL 액션으로 표시
-          playerActionHistory[playerIndex].clear(); // 기존 SB/BB 표시 제거
-          playerActionHistory[playerIndex].add('CALL: ${formatAmount(player.bet)}');
-        } else {
-          // 실제 베팅 금액(call 후 총 베팅액)을 표시
-          playerActionHistory[playerIndex].add('CALL: ${formatAmount(player.bet)}');
-        }
+        // 모든 경우에 대해 실제 베팅 후 금액을 표시
+        playerActionHistory[playerIndex].clear(); // 기존 모든 표시 제거
+        playerActionHistory[playerIndex].add('CALL: ${formatAmount(player.bet)}');
       }
       stateChanged = true;
     } else if (action < 70) {
@@ -282,16 +283,21 @@ class _PotLimitPageState extends State<PotLimitPage> {
       print('Action: POT! | Player: ${player.name} | potBet: \$${formatAmount(potBet)}');
       
       // POT 액션 수행 - 팟 리밋을 존중
+      playerActionHistory[playerIndex].clear(); // 액션 전에 초기화
+      
       if (player.chips <= potLimit - player.bet) {
         // 칩이 부족하면 올인
-        print('플레이어 칩이 부족하여 올인');
+        print('Action: ALL-IN (부족한 칩) | Player: ${player.name} | 보유 칩: \$${formatAmount(player.chips)} | potLimit: \$${formatAmount(potLimit)}');
+        playerActionHistory[playerIndex].clear(); // 액션 전에 초기화
         bettingRound!.performAction('allIn');
-        // 실제 베팅된 금액을 기준으로 올인 금액 표시
+        // 실제 베팅된 금액을 기준으로 표시
         playerActionHistory[playerIndex].add('ALL-IN: ${formatAmount(player.bet)}');
+        stateChanged = true;
+        return;
       } else {
         bettingRound!.performAction('raise', potBet);
-        // POT 베팅 후에는 실제 베팅 금액을 표시
-        playerActionHistory[playerIndex].add('POT!: ${formatAmount(player.bet)}');
+        // POT 베팅 후에는 실제 베팅 금액을 표시 - POT! 표시만 하고 금액은 표시 안함
+        playerActionHistory[playerIndex].add('POT!');
       }
       
       isPotGuessing = true;
