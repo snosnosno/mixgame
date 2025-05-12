@@ -19,6 +19,11 @@ jobs:
         with:
           flutter-version: '3.22.0'
 
+      - name: Check Flutter & Dart version
+        run: |
+          flutter --version
+          dart --version
+
       - name: Install dependencies
         run: flutter pub get
 
