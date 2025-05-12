@@ -241,27 +241,24 @@ class _PotLimitPageState extends State<PotLimitPage> {
       print('최대 가능 베팅: $maxRaiseBet, 레이즈 범위: $rangeBets');
       print('선택된 베팅: $selectedBet, 순수 레이즈 금액: $actualRaiseAmount, targetBet: $targetBet');
       
-      // 8. 로그에 실제로 출력되는 값과 동일하게 강제 설정 (핵심 수정)
-      // 로그에 나타나는 값: 19500 = 6000 + (6000 + 500*3)
-      int finalUIAmount = 0;
-      if (smallBlind >= 1500 && smallBlind < 4000) {
-        // 현재 500단위로 맞춰지는 문제 핸들링
-        finalUIAmount = minRaiseBet - maxTableBet;  // 최소 레이즈 베팅에서 콜 금액을 빼서 레이즈 금액 계산
-      } else {
-        // 기본: 조정된 값으로 표시
-        finalUIAmount = ((actualRaiseAmount + step - 1) ~/ step) * step;
-      }
+      // UI는 플레이어 액션 이후에 업데이트합니다 (로그 먼저, UI 나중에)
+      print('Action: RAISE | Player: ${player.name} | raiseAmount: $actualRaiseAmount');
       
-      // UI에 먼저 표시
+      // 이전 베팅 기록 삭제
       playerActionHistory[playerIndex].clear();
-      playerActionHistory[playerIndex].add('RAISE: ${finalUIAmount}');
       
-      print('UI에 표시할 금액: $finalUIAmount (액션 전)');
-      
-      // 9. 베팅 실행
+      // 베팅 실행 (액션을 먼저 수행하고 결과를 UI에 표시)
+      int prevBet = player.bet;
       bettingRound!.performAction('setBet', targetBet);
       
-      print('베팅 후 실제 값: ${bettingRound!.lastRaiseAmount} vs. UI 값: $finalUIAmount');
+      // 실제 처리된 금액 (레이즈 금액) 가져오기
+      int actualBet = player.bet;
+      int finalRaiseAmount = actualBet - prevBet;
+      
+      print('베팅 후 실제 액션: ${player.name} | 이전 베팅: $prevBet | 최종 베팅: $actualBet | 순수 레이즈: $finalRaiseAmount');
+      
+      // 로그에서 확인한 실제 처리된 금액을 UI에 표시
+      playerActionHistory[playerIndex].add('RAISE: ${finalRaiseAmount}');
       
       raiseCount++;
       stateChanged = true;
@@ -289,11 +286,14 @@ class _PotLimitPageState extends State<PotLimitPage> {
           print('Action: ALL-IN (콜 금액 부족) | Player: ${player.name} | 보유 칩: ${player.chips} | 콜 금액: $callAmount');
           
           int targetBet = prevBet + player.chips;
-          // bettingRound 직접 업데이트하지 않고 로직에 맡김
+          // 이전 베팅 기록 삭제
+          playerActionHistory[playerIndex].clear();
+          
+          // 베팅 실행
           bettingRound!.performAction('setBet', targetBet);
           
-          playerActionHistory[playerIndex].clear();
-          playerActionHistory[playerIndex].add('ALL-IN: ${formatAmountString(player.chips)}');
+          // 실제 금액으로 UI 업데이트 (플레이어의 모든 칩을 사용)
+          playerActionHistory[playerIndex].add('ALL-IN: ${player.bet}');
         } else {
           // 정상 콜 케이스
           int targetBet = maxTableBet;
@@ -303,10 +303,12 @@ class _PotLimitPageState extends State<PotLimitPage> {
             playerActionHistory[playerIndex].clear();
           }
           
-          // bettingRound 직접 업데이트하지 않고 로직에 맡김
+          // 베팅 실행
           bettingRound!.performAction('setBet', targetBet);
           
-          playerActionHistory[playerIndex].add('CALL: ${formatAmountString(callAmount)}');
+          // 실제 콜 금액 계산 (최종 베팅 - 이전 베팅)
+          int actualCallAmount = player.bet - prevBet;
+          playerActionHistory[playerIndex].add('CALL: ${actualCallAmount}');
         }
       } else {
         // 체크 케이스
@@ -363,21 +365,27 @@ class _PotLimitPageState extends State<PotLimitPage> {
       int prevBet = player.bet;
       int targetBet = roundedPotBet;
       
-      // 이미 베팅한 금액 제외
+      // 이미 베팅한 금액 제외한 순수 베팅 금액
       int actualPotRaise = targetBet - prevBet;
       
-      print('액션: POT! | 플레이어: ${player.name} | 금액: $actualPotRaise | 타겟 베팅: $targetBet');
+      print('Action: POT! | Player: ${player.name} | potBet: $targetBet');
       
-      // 정답 설정
-      potCorrectAnswer = roundedPotBet;
-      
+      // 이전 액션 기록 삭제
       playerActionHistory[playerIndex].clear();
       
-      // 베팅 실행
+      // 베팅 실행 - 처리 후 실제 값을 기반으로 UI 업데이트
       bettingRound!.performAction('setBet', targetBet);
       
-      // UI에 표시할 액션 기록 업데이트
-      playerActionHistory[playerIndex].add('POT! (${formatAmountString(actualPotRaise)})');
+      // 실제 베팅 후 정답 설정
+      potCorrectAnswer = player.bet; // 실제 베팅된 최종 금액
+      
+      // 실제 베팅 금액과 레이즈 금액 계산
+      int finalBet = player.bet;
+      int finalRaiseAmount = finalBet - prevBet;
+      
+      // UI에 실제 레이즈 금액 표시
+      playerActionHistory[playerIndex].add('POT! (${finalRaiseAmount})');
+      
       isPotGuessing = true;
       resultMessage = '';
       raiseCount++;
