@@ -47,8 +47,8 @@ class BettingRound {
       step = 100;
     }
     
-    // 단위에 맞게 내림 처리
-    return (amount ~/ step) * step;
+    // 단위에 맞게 반올림 처리 (부동소수점 반올림)
+    return ((amount + (step ~/ 2)) ~/ step) * step;
   }
   
   // 현재 게임의 스몰 블라인드 금액 구하기
