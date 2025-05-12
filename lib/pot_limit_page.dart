@@ -64,29 +64,46 @@ class _PotLimitPageState extends State<PotLimitPage> {
     super.dispose();
   }
 
-  String formatAmount(int amount) {
-    // 스몰 블라인드 크기에 따라 화면에 표시되는 금액을 적절한 단위로 반올림
-    int step;
+  int formatAmount(int amount) {
+    // 디버그를 위한 상세 로그 추가
+    print('formatAmount 함수 호출됨 - amount=$amount, smallBlind=$smallBlind');
     
-    if ([1500, 2000, 2500, 3000].contains(smallBlind)) {
-      // SB가 1500, 2000, 2500, 3000일 때는 500단위로 표시
-      step = 500;
-    } else if (smallBlind >= 4000) {
-      // SB가 4000, 5000, 6000, 8000, 10000 이상일 때는 1000단위로 표시
-      step = 1000;
-    } else {
-      // 그 외의 경우는 100단위로 표시
-      step = 100;
-    }
-    
-    // 100 이하의 블라인드 금액은 정확히 표시
+    // 블라인드 관련 금액은 그대로 보존
     if (amount <= 100 || amount == smallBlind || amount == bigBlind) {
-      return amount.toString();
+      print('블라인드 금액 예외 적용: $amount (변경 없음)');
+      return amount;
     }
     
-    // 단위에 맞게 반올림 처리 (표시 용도로만 사용)
-    int roundedAmount = ((amount + (step ~/ 2)) ~/ step) * step;
-    return roundedAmount.toString();
+    // 스몰 블라인드 값을 정수로 확실히 변환
+    int sb = smallBlind;
+    print('스몰 블라인드 값: $sb');
+    
+    // 반올림 단위 결정 (명확한 조건으로 단순화)
+    int step;
+    if (sb >= 1500 && sb < 4000) {
+      // 1500 이상 4000 미만: 500 단위
+      step = 500;
+      print('적용 단위: 500 (SB=$sb)');
+    } else if (sb >= 4000) {
+      // 4000 이상: 1000 단위
+      step = 1000;
+      print('적용 단위: 1000 (SB=$sb)');
+    } else {
+      // 그 외: 100 단위
+      step = 100;
+      print('적용 단위: 100 (SB=$sb)');
+    }
+    
+    // 반올림 계산 - 항상 가장 가까운 단위로 (금액/단위 + 0.5를 내림한 후 다시 단위 곱함)
+    int roundedAmount = ((amount + (step / 2).floor()) ~/ step) * step;
+    print('금액 반올림: $amount → $roundedAmount (단위=$step)');
+    
+    return roundedAmount;
+  }
+
+  String formatAmountString(int amount) {
+    // 금액을 문자열로 변환
+    return formatAmount(amount).toString();
   }
 
   void initializePlayers() {
@@ -131,8 +148,8 @@ class _PotLimitPageState extends State<PotLimitPage> {
     if (utgIdx != -1) bettingRound!.currentPlayerIndex = utgIdx;
 
     playerActionHistory = List.generate(numberOfPlayers, (_) => []);
-    if (sbIdx != -1) playerActionHistory[sbIdx].add('SB: ${formatAmount(smallBlind)}');
-    if (bbIdx != -1) playerActionHistory[bbIdx].add('BB: ${formatAmount(bigBlind)}');
+    if (sbIdx != -1) playerActionHistory[sbIdx].add('SB: ${formatAmountString(smallBlind)}');
+    if (bbIdx != -1) playerActionHistory[bbIdx].add('BB: ${formatAmountString(bigBlind)}');
   }
 
   void performPlayerAction(int playerIndex) {
@@ -175,9 +192,9 @@ class _PotLimitPageState extends State<PotLimitPage> {
 
     print('--- Player Status ---');
     for (var p in players) {
-      print('${p.name} | chips: \$${formatAmount(p.chips)} | bet: \$${formatAmount(p.bet)} | isAllIn: ${p.isAllIn} | isFolded: ${p.isFolded}');
+      print('${p.name} | chips: \$${formatAmountString(p.chips)} | bet: \$${formatAmountString(p.bet)} | isAllIn: ${p.isAllIn} | isFolded: ${p.isFolded}');
     }
-    print('lastRaiseAmount: \$${formatAmount(bettingRound?.lastRaiseAmount ?? 0)}');
+    print('lastRaiseAmount: \$${formatAmountString(bettingRound?.lastRaiseAmount ?? 0)}');
 
     final random = Random();
     int action = random.nextInt(100);
@@ -196,32 +213,40 @@ class _PotLimitPageState extends State<PotLimitPage> {
         minRaise = bettingRound!.getMinimumRaise();
       }
       
+      // minRaise 자체도 반올림 처리
+      minRaise = formatAmount(minRaise);
+      print('반올림 후 minRaise: $minRaise');
+      
       if (maxRaise < minRaise) {
         // 칩이 부족하면 팟 리밋 내에서 올인
-        print('Action: ALL-IN (부족한 칩) | Player: ${player.name} | 보유 칩: \$${formatAmount(player.chips)} | potLimit: \$${formatAmount(potLimit)}');
+        print('Action: ALL-IN (부족한 칩) | Player: ${player.name} | 보유 칩: \$${formatAmountString(player.chips)} | potLimit: \$${formatAmountString(potLimit)}');
         bettingRound!.performAction('allIn');
         // 실제 베팅된 금액을 기준으로 표시
-        playerActionHistory[playerIndex].add('ALL-IN: ${formatAmount(player.bet)}');
+        playerActionHistory[playerIndex].add('ALL-IN: ${formatAmountString(player.bet)}');
         stateChanged = true;
         return;
       }
       
-      // 베팅 금액 범위 계산
+      // 베팅 금액 범위 계산 (100 단위의 랜덤 계산)
       int numSteps = ((maxRaise - minRaise) ~/ 100) + 1;
       int raiseAmount = minRaise + (numSteps > 1 ? random.nextInt(numSteps) * 100 : 0);
       
-      // 금액 표시용 문자열과 실제 금액 계산용 값을 분리
+      // 여기가 핵심: raiseAmount를 반올림하여 실제 사용할 금액으로 적용
+      int roundedRaiseAmount = formatAmount(raiseAmount);
+      String formattedAmount = roundedRaiseAmount.toString();
+      
       // 화면에 표시할 때는 실제 베팅된 금액을 formatAmount로 표시 (UI와 로그 일치)
-      print('Action: RAISE | Player: ${player.name} | raiseAmount: \$${formatAmount(raiseAmount)}');
+      print('원래 레이즈 금액: $raiseAmount, 반올림 금액: $roundedRaiseAmount');
+      print('Action: RAISE | Player: ${player.name} | raiseAmount: \$${formattedAmount}');
       
       // 액션 중복 표시 해결을 위해 playerActionHistory 초기화
       playerActionHistory[playerIndex].clear();
       
-      // 실제 베팅 실행
-      bettingRound!.performAction('raise', raiseAmount);
+      // 반올림된 금액으로 베팅 실행
+      bettingRound!.performAction('raise', roundedRaiseAmount);
       
-      // 베팅 실행 후 실제 적용된 금액을 표시 (UI와 로그 일치)
-      playerActionHistory[playerIndex].add('RAISE: ${formatAmount(player.bet)}');
+      // UI에 표시할 금액은 로그와 동일한 반올림된 금액 사용 (player.bet이 아님)
+      playerActionHistory[playerIndex].add('RAISE: ${formattedAmount}');
       raiseCount++;
       stateChanged = true;
     } else if (action < 50) {
@@ -229,25 +254,38 @@ class _PotLimitPageState extends State<PotLimitPage> {
       // BettingRound 클래스의 getCallAmount 메서드가 이미 금액을 적절히 조정함
       int callAmount = bettingRound!.getCallAmount();
       
-      if (callAmount > player.chips) {
+      // 콜 금액에도 반올림 강제 적용 (반드시 formatAmount 사용)
+      int roundedCallAmount = formatAmount(callAmount);
+      String formattedCallAmount = roundedCallAmount.toString();
+      
+      print('원래 콜 금액: $callAmount, 반올림된 금액: $roundedCallAmount');
+      print('Action: CALL | Player: ${player.name} | callAmount: \$${formattedCallAmount}');
+      
+      if (roundedCallAmount > player.chips) {
         // 칩이 부족하면 올인
-        print('Action: ALL-IN (콜 금액 부족) | Player: ${player.name} | 보유 칩: \$${formatAmount(player.chips)} | 콜 금액: \$${formatAmount(callAmount)}');
+        print('Action: ALL-IN (콜 금액 부족) | Player: ${player.name} | 보유 칩: \$${formatAmountString(player.chips)} | 콜 금액: \$${formattedCallAmount}');
         bettingRound!.performAction('allIn');
         // 실제 베팅된 금액을 기준으로 표시
-        playerActionHistory[playerIndex].add('ALL-IN: ${formatAmount(player.bet)}');
+        playerActionHistory[playerIndex].add('ALL-IN: ${formatAmountString(player.bet)}');
       } else {
-        print('Action: CALL | Player: ${player.name} | callAmount: \$${formatAmount(callAmount)}');
-        
         // 액션 표시 전에 초기화
         if (player.position != Position.bigBlind && player.position != Position.smallBlind) {
           playerActionHistory[playerIndex].clear();
         }
         
-        bettingRound!.performAction('call');
+        // 반올림된 콜 금액으로 베팅 실행
+        // 직접 콜 액션을 수행하지 않고 금액을 전달하는 raise를 사용 (콜 금액만큼 레이즈)
+        if (roundedCallAmount > 0) {
+          int targetBet = player.bet + roundedCallAmount;
+          bettingRound!.performAction('raise', targetBet);
+        } else {
+          // 콜 금액이 0인 경우 체크와 동일
+          bettingRound!.performAction('check');
+        }
         
         // 모든 경우에 대해 실제 베팅 후 금액을 표시
         playerActionHistory[playerIndex].clear(); // 기존 모든 표시 제거
-        playerActionHistory[playerIndex].add('CALL: ${formatAmount(player.bet)}');
+        playerActionHistory[playerIndex].add('CALL: ${formattedCallAmount}');
       }
       stateChanged = true;
     } else if (action < 70) {
@@ -270,32 +308,37 @@ class _PotLimitPageState extends State<PotLimitPage> {
       int totalPlayerChips = player.chips + player.bet;
       int potBet = min(potLimit, totalPlayerChips);
       
-      // BettingRound 클래스의 adjustAmountByBlindSize 메서드를 통해 
-      // POT 베팅 금액을 적절히 조정하므로 별도 처리 없이 바로 사용
+      // 확실하게 반올림 처리 적용
+      int roundedPotBet = formatAmount(potBet);
+      String formattedPotBet = roundedPotBet.toString();
       
-      // 베팅 금액을 저장 (퀴즈용) - 정확한 계산값 저장
-      potCorrectAnswer = potBet;
+      // 원래 값과 반올림된 값 로깅
+      print('원래 POT 베팅: $potBet, 반올림된 베팅: $roundedPotBet, SB=$smallBlind');
+      
+      // 베팅 금액을 저장 (퀴즈용) - 반올림된 계산값 저장
+      potCorrectAnswer = roundedPotBet;
       
       print('------ POT! 계산 상세 ------');
-      print('현재 팟: \$${formatAmount(currentPot)} | 콜 금액: \$${formatAmount(callAmount)}');
-      print('플레이어 총 칩: \$${formatAmount(totalPlayerChips)} | 팟 리밋: \$${formatAmount(potLimit)}');
-      print('최종 POT 베팅: \$${formatAmount(potBet)}');
-      print('Action: POT! | Player: ${player.name} | potBet: \$${formatAmount(potBet)}');
+      print('현재 팟: \$${formatAmountString(currentPot)} | 콜 금액: \$${formatAmountString(callAmount)}');
+      print('플레이어 총 칩: \$${formatAmountString(totalPlayerChips)} | 팟 리밋: \$${formatAmountString(potLimit)}');
+      print('최종 POT 베팅: \$${formattedPotBet}');
+      print('Action: POT! | Player: ${player.name} | potBet: \$${formattedPotBet}');
       
       // POT 액션 수행 - 팟 리밋을 존중
       playerActionHistory[playerIndex].clear(); // 액션 전에 초기화
       
       if (player.chips <= potLimit - player.bet) {
         // 칩이 부족하면 올인
-        print('Action: ALL-IN (부족한 칩) | Player: ${player.name} | 보유 칩: \$${formatAmount(player.chips)} | potLimit: \$${formatAmount(potLimit)}');
+        print('Action: ALL-IN (부족한 칩) | Player: ${player.name} | 보유 칩: \$${formatAmountString(player.chips)} | potLimit: \$${formatAmountString(potLimit)}');
         playerActionHistory[playerIndex].clear(); // 액션 전에 초기화
         bettingRound!.performAction('allIn');
         // 실제 베팅된 금액을 기준으로 표시
-        playerActionHistory[playerIndex].add('ALL-IN: ${formatAmount(player.bet)}');
+        playerActionHistory[playerIndex].add('ALL-IN: ${formatAmountString(player.bet)}');
         stateChanged = true;
         return;
       } else {
-        bettingRound!.performAction('raise', potBet);
+        // 반올림된 금액으로 베팅 실행
+        bettingRound!.performAction('raise', roundedPotBet);
         // POT 베팅 후에는 실제 베팅 금액을 표시 - POT! 표시만 하고 금액은 표시 안함
         playerActionHistory[playerIndex].add('POT!');
       }
@@ -377,7 +420,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
     
     print('--- CHECK POT GUESS ---');
     print('User guess: \$${userGuess} | Correct: \$${correctPot}');
-    print('Current pot: \$${currentPot} | Last action amount: \$${lastActionAmount}');
+    print('Current pot: \$${formatAmountString(currentPot)} | Last action amount: \$${formatAmountString(lastActionAmount)}');
     
     setState(() {
       if (userGuess == correctPot) {
@@ -385,9 +428,9 @@ class _PotLimitPageState extends State<PotLimitPage> {
         resultMessage = '${getText("correctAnswer")}$currentScore';
       } else {
         // 계산식 표시를 위한 반올림된 금액들
-        String formattedCurrentPot = formatAmount(currentPot);
-        String formattedLastAmount = formatAmount(lastActionAmount);
-        String formattedTotal = formatAmount(correctPot);
+        String formattedCurrentPot = formatAmountString(currentPot);
+        String formattedLastAmount = formatAmountString(lastActionAmount);
+        String formattedTotal = formatAmountString(correctPot);
         
         resultMessage = '${getText("wrongAnswer")}${formattedTotal}';
       }
@@ -860,7 +903,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      formatAmount(chipsInitial[index]),
+                      formatAmountString(chipsInitial[index]),
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: screenWidth * (isSmallScreen ? 0.03 : (screenWidth < 500 ? 0.035 : 0.045)) * fontScale,

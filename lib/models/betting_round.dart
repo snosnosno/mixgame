@@ -33,6 +33,12 @@ class BettingRound {
 
   // 블라인드 크기에 따라 적절한 단위로 금액을 조정하는 메서드
   int adjustAmountByBlindSize(int amount) {
+    // 이 함수는 더 이상 실제 조정을 수행하지 않고 그대로 반환
+    // pot_limit_page.dart의 formatAmount가 모든 조정을 담당
+    return amount;
+    
+    // 아래 코드는 더 이상 사용하지 않음
+    /*
     int smallBlind = getSmallBlindAmount();
     int step;
     
@@ -49,6 +55,7 @@ class BettingRound {
     
     // 단위에 맞게 반올림 처리 (부동소수점 반올림)
     return ((amount + (step ~/ 2)) ~/ step) * step;
+    */
   }
   
   // 현재 게임의 스몰 블라인드 금액 구하기
@@ -106,9 +113,16 @@ class BettingRound {
   int getCallAmount() {
     int rawCallAmount = currentBet - currentPlayer.bet;
     
+    // 단순히 raw 금액을 반환 (조정 없이)
+    // pot_limit_page.dart에서 formatAmount로 처리함
+    return rawCallAmount;
+    
+    // 아래 코드는 더 이상 사용하지 않음
+    /*
     // 콜 금액도 블라인드 크기에 맞게 조정
     // (전체 베팅 금액을 조정한 후 현재 베팅을 뺌)
     return adjustAmountByBlindSize(currentPlayer.bet + rawCallAmount) - currentPlayer.bet;
+    */
   }
 
   int calculatePotLimit() {
@@ -134,8 +148,12 @@ class BettingRound {
   int getMinimumRaise() {
     int minRaise = currentBet + lastValidRaiseAmount;
     
-    // 블라인드 크기에 맞게 미니멈 레이즈 금액 조정
-    return adjustAmountByBlindSize(minRaise);
+    // 블라인드 크기에 맞게 미니멈 레이즈 금액 조정 비활성화
+    // pot_limit_page.dart에서 formatAmount가 모든 조정을 처리
+    return minRaise;
+    
+    // 아래 코드는 더 이상 사용하지 않음
+    // return adjustAmountByBlindSize(minRaise);
   }
 
   void performAction(String action, [int? amount]) {
@@ -162,8 +180,9 @@ class BettingRound {
         int potLimit = calculatePotLimit();
         int maxBet = currentPlayer.chips + currentPlayer.bet;
         
-        // 입력 받은 amount 값을 블라인드 크기에 따라 적절한 단위로 조정
-        int adjustedAmount = adjustAmountByBlindSize(amount);
+        // 이미 pot_limit_page.dart에서 반올림된 금액이 전달되므로, 여기서는 추가 조정 안함
+        // int adjustedAmount = adjustAmountByBlindSize(amount);
+        int adjustedAmount = amount; // 전달 받은 금액 그대로 사용
         
         // 조정된 금액 사용
         int finalBet = min(adjustedAmount, min(maxBet, potLimit));
@@ -215,8 +234,8 @@ class BettingRound {
     int previousBet = currentPlayer.bet;
     int allInAmount = min(currentPlayer.chips, potLimit - previousBet);
     
-    // 올인 금액도 블라인드 크기에 따라 조정
-    allInAmount = adjustAmountByBlindSize(allInAmount + previousBet) - previousBet;
+    // 블라인드 크기에 따른 올인 금액 조정을 제거하고 원래 계산된 금액 사용
+    // allInAmount = adjustAmountByBlindSize(allInAmount + previousBet) - previousBet;
     
     int finalBet = previousBet + allInAmount;
     
