@@ -1,42 +1,33 @@
-name: Deploy to GitHub Pages
+# test: trigger GitHub Actions
+name: Flutter Web Deploy
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
-
-permissions:
-  contents: write
+    branches:
+      - main
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Setup Flutter
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x'
-          channel: 'stable'
+          flutter-version: '3.19.6'
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Web
-        run: flutter build web --release --base-href=/mixgame/
+      - name: Build web
+        run: flutter build web
 
-      - name: Copy build files to docs directory
-        run: |
-          rm -rf docs/*
-          cp -r build/web/* docs/
-          touch docs/.nojekyll
-
-      - name: Commit and push changes
-        run: |
-          git config --global user.name 'GitHub Actions'
-          git config --global user.email 'actions@github.com'
-          git add docs/
-          git commit -m "자동 배포: web 빌드 결과를 docs로 복사" || echo "No changes to commit"
-          git push 
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: build/web
+          publish_branch: gh-pages 
