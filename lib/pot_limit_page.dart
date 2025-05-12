@@ -212,11 +212,16 @@ class _PotLimitPageState extends State<PotLimitPage> {
       // BettingRound 클래스 내부에서 금액 조정 로직을 처리하도록 함
       // (adjustAmountByBlindSize 메서드가 내부적으로 호출됨)
       
-      print('Action: RAISE | Player: ${player.name} | raiseAmount: \$${formatAmount(raiseAmount)}');
-      bettingRound!.performAction('raise', raiseAmount);
       // 금액 표시용 문자열과 실제 금액 계산용 값을 분리
       // 화면에 표시할 때는 반올림된 금액으로 표시 (500/1000 단위)
       playerActionHistory[playerIndex].add('RAISE: ${formatAmount(raiseAmount)}');
+
+      // 금액 표시용 문자열과 실제 금액 계산용 값을 분리
+      // 화면에 표시할 때는 실제 베팅된 금액을 formatAmount로 표시 (UI와 로그 일치)
+      print('Action: RAISE | Player: ${player.name} | raiseAmount: \$${formatAmount(raiseAmount)}');
+      bettingRound!.performAction('raise', raiseAmount);
+      // 실제 베팅된 금액을 기준으로 표시 (player.bet)
+      playerActionHistory[playerIndex].add('RAISE: ${formatAmount(player.bet)}');
       raiseCount++;
       stateChanged = true;
     } else if (action < 50) {
@@ -239,7 +244,8 @@ class _PotLimitPageState extends State<PotLimitPage> {
           playerActionHistory[playerIndex].clear(); // 기존 SB/BB 표시 제거
           playerActionHistory[playerIndex].add('CALL: ${formatAmount(player.bet)}');
         } else {
-          playerActionHistory[playerIndex].add('CALL: ${formatAmount(callAmount)}');
+          // 실제 베팅 금액(call 후 총 베팅액)을 표시
+          playerActionHistory[playerIndex].add('CALL: ${formatAmount(player.bet)}');
         }
       }
       stateChanged = true;
@@ -280,11 +286,14 @@ class _PotLimitPageState extends State<PotLimitPage> {
         // 칩이 부족하면 올인
         print('플레이어 칩이 부족하여 올인');
         bettingRound!.performAction('allIn');
+        // 실제 베팅된 금액을 기준으로 올인 금액 표시
+        playerActionHistory[playerIndex].add('ALL-IN: ${formatAmount(player.bet)}');
       } else {
-      bettingRound!.performAction('raise', potBet);
+        bettingRound!.performAction('raise', potBet);
+        // POT 베팅 후에는 실제 베팅 금액을 표시
+        playerActionHistory[playerIndex].add('POT!: ${formatAmount(player.bet)}');
       }
       
-      playerActionHistory[playerIndex].add('POT!');
       isPotGuessing = true;
       resultMessage = '';
       raiseCount++;
