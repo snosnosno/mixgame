@@ -203,8 +203,8 @@ class BettingRound {
       case 'call':
         int callAmount = getCallAmount();
         currentPlayer.bet = currentPlayer.bet + callAmount;
-        pot.addBet(currentPlayer, callAmount);
-        nextPlayer();
+          pot.addBet(currentPlayer, callAmount);
+          nextPlayer();
         break;
       case 'raise':
         if (amount == null || amount <= currentBet) return 0;

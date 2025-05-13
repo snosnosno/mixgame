@@ -241,24 +241,30 @@ class _PotLimitPageState extends State<PotLimitPage> {
       print('최대 가능 베팅: $maxRaiseBet, 레이즈 범위: $rangeBets');
       print('선택된 베팅: $selectedBet, 순수 레이즈 금액: $actualRaiseAmount, targetBet: $targetBet');
       
-      // UI는 플레이어 액션 이후에 업데이트합니다 (로그 먼저, UI 나중에)
+      // 액션을 로그에 기록
       print('Action: RAISE | Player: ${player.name} | raiseAmount: $actualRaiseAmount');
       
-      // 이전 베팅 기록 삭제
-      playerActionHistory[playerIndex].clear();
-      
-      // 베팅 실행 (액션을 먼저 수행하고 결과를 UI에 표시)
+      // 이전 베팅 기록 저장
       int prevBet = player.bet;
+      
+      // *** 중요: 여기서 UI 관련 로직을 분리하여 먼저 내부 처리 완료 후 UI 업데이트 ***
+      
+      // 베팅 실행 - 내부 처리 수행
       bettingRound!.performAction('setBet', targetBet);
       
-      // 실제 처리된 금액 (레이즈 금액) 가져오기
-      int actualBet = player.bet;
-      int finalRaiseAmount = actualBet - prevBet;
+      // 실제 처리된 값 확인 (내부 처리 후의 실제 값)
+      int actualProcessedBet = player.bet;
+      int finalRaiseAmount = bettingRound!.lastRaiseAmount;
       
-      print('베팅 후 실제 액션: ${player.name} | 이전 베팅: $prevBet | 최종 베팅: $actualBet | 순수 레이즈: $finalRaiseAmount');
+      print('베팅 처리 후: ${player.name} | 이전 베팅: $prevBet | 최종 베팅: $actualProcessedBet | 실제 레이즈: $finalRaiseAmount');
       
-      // 로그에서 확인한 실제 처리된 금액을 UI에 표시
-      playerActionHistory[playerIndex].add('RAISE: ${finalRaiseAmount}');
+      // 내부 처리가 모두 완료된 후 UI 업데이트
+      setState(() {
+        // 이전 액션 기록 삭제
+        playerActionHistory[playerIndex].clear();
+        // 실제 처리된 레이즈 금액으로 UI 업데이트
+        playerActionHistory[playerIndex].add('RAISE: $finalRaiseAmount');
+      });
       
       raiseCount++;
       stateChanged = true;
@@ -285,44 +291,71 @@ class _PotLimitPageState extends State<PotLimitPage> {
           // 올인 케이스
           print('Action: ALL-IN (콜 금액 부족) | Player: ${player.name} | 보유 칩: ${player.chips} | 콜 금액: $callAmount');
           
+          // 이전 베팅 값 저장
+          int prevBet = player.bet;
           int targetBet = prevBet + player.chips;
-          // 이전 베팅 기록 삭제
-          playerActionHistory[playerIndex].clear();
           
           // 베팅 실행
           bettingRound!.performAction('setBet', targetBet);
           
-          // 실제 금액으로 UI 업데이트 (플레이어의 모든 칩을 사용)
-          playerActionHistory[playerIndex].add('ALL-IN: ${player.bet}');
+          // 실제 처리된 값 확인
+          int actualAllInAmount = player.bet;
+          
+          // 내부 처리가 모두 완료된 후 UI 업데이트
+          setState(() {
+            // 이전 액션 기록 삭제
+            playerActionHistory[playerIndex].clear();
+            // 실제 처리된 올인 금액으로 UI 업데이트
+            playerActionHistory[playerIndex].add('ALL-IN: $actualAllInAmount');
+          });
         } else {
           // 정상 콜 케이스
           int targetBet = maxTableBet;
           print('액션: CALL | 플레이어: ${player.name} | 금액: $callAmount | 타겟 베팅: $targetBet');
           
-          if (player.position != Position.bigBlind && player.position != Position.smallBlind) {
-            playerActionHistory[playerIndex].clear();
-          }
+          // 이전 베팅 값 저장
+          int prevBet = player.bet;
           
           // 베팅 실행
           bettingRound!.performAction('setBet', targetBet);
           
-          // 실제 콜 금액 계산 (최종 베팅 - 이전 베팅)
+          // 실제 처리된 금액 확인
           int actualCallAmount = player.bet - prevBet;
-          playerActionHistory[playerIndex].add('CALL: ${actualCallAmount}');
+          
+          // 내부 처리가 모두 완료된 후 UI 업데이트
+          setState(() {
+            // 이전 액션 기록 삭제
+            if (player.position != Position.bigBlind && player.position != Position.smallBlind) {
+              playerActionHistory[playerIndex].clear();
+            }
+            // 실제 처리된 콜 금액으로 UI 업데이트
+            playerActionHistory[playerIndex].add('CALL: $actualCallAmount');
+          });
         }
       } else {
         // 체크 케이스
         bettingRound!.performAction('check');
-        playerActionHistory[playerIndex].clear();
-        playerActionHistory[playerIndex].add('CHECK');
+        
+        // 내부 처리가 모두 완료된 후 UI 업데이트
+        setState(() {
+          playerActionHistory[playerIndex].clear();
+          playerActionHistory[playerIndex].add('CHECK');
+        });
       }
       
       stateChanged = true;
     } else if (action < 70) {
       // 20% 확률로 "폴드"
       print('Action: FOLD | Player: ${player.name}');
+      
+      // 내부 처리 수행
       bettingRound!.performAction('fold');
-      playerActionHistory[playerIndex].add('FOLD');
+      
+      // 내부 처리가 모두 완료된 후 UI 업데이트
+      setState(() {
+        playerActionHistory[playerIndex].add('FOLD');
+      });
+      
       stateChanged = true;
     } else {
       // 30% 확률로 "POT!" (항상 최대금액으로 베팅)
@@ -361,7 +394,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
       print('플레이어 총 칩: $totalPlayerChips | 일반 팟 베팅: $potBet');
       print('최종 POT 베팅(조정): $roundedPotBet, 스텝: $step');
       
-      // 예상되는 실제 베팅 금액 계산
+      // 이전 베팅 값 저장
       int prevBet = player.bet;
       int targetBet = roundedPotBet;
       
@@ -370,21 +403,23 @@ class _PotLimitPageState extends State<PotLimitPage> {
       
       print('Action: POT! | Player: ${player.name} | potBet: $targetBet');
       
-      // 이전 액션 기록 삭제
-      playerActionHistory[playerIndex].clear();
-      
-      // 베팅 실행 - 처리 후 실제 값을 기반으로 UI 업데이트
+      // 베팅 실행 - 내부 처리 수행
       bettingRound!.performAction('setBet', targetBet);
       
       // 실제 베팅 후 정답 설정
       potCorrectAnswer = player.bet; // 실제 베팅된 최종 금액
       
-      // 실제 베팅 금액과 레이즈 금액 계산
+      // 실제 처리된 값 확인
       int finalBet = player.bet;
-      int finalRaiseAmount = finalBet - prevBet;
+      int finalRaiseAmount = bettingRound!.lastRaiseAmount; // 로그 상의 레이즈 금액 직접 사용
       
-      // UI에 실제 레이즈 금액 표시
-      playerActionHistory[playerIndex].add('POT! (${finalRaiseAmount})');
+      // 내부 처리가 모두 완료된 후 UI 업데이트
+      setState(() {
+        // 이전 액션 기록 삭제
+        playerActionHistory[playerIndex].clear();
+        // 실제 처리된 레이즈 금액으로 UI 업데이트
+        playerActionHistory[playerIndex].add('POT! ($finalRaiseAmount)');
+      });
       
       isPotGuessing = true;
       resultMessage = '';
