@@ -106,9 +106,19 @@ class PotLimitProvider extends ChangeNotifier {
 
   /// 금액 형식화 함수
   String formatAmount(int amount) {
-    if (smallBlind == 1500) {
-      return ((amount + 250) ~/ 500 * 500).toString();
+    // 금액 단위 조정 로직
+    // SB가 1500-4000미만인 경우 500단위, SB가 4000 이상일 경우 1000단위로 조정
+    int sb = smallBlind;
+    int step;
+    
+    if (sb >= 1500 && sb < 4000) {
+      step = 500;
+      return ((amount / step).ceil() * step).toString();
+    } else if (sb >= 4000) {
+      step = 1000;
+      return ((amount / step).ceil() * step).toString();
     }
+    
     return amount.toString();
   }
 
@@ -225,68 +235,54 @@ class PotLimitProvider extends ChangeNotifier {
     
     // POT 액션 정보가 저장되어 있으면 해당 정보 사용 - 확실하게 저장된 값 우선 사용
     int currentPot = potLastCurrentPot ?? 0;
-    int callAmount = potLastCallAmount ?? (bettingRound!.currentPlayerIndex < players.length ? bettingRound!.currentBet : 0);
-    int potLimit = potLastLimit ?? bettingRound!.calculatePotLimit();
+    int callAmount = potLastCallAmount ?? 0;
+    
+    // 저장된 값이 없으면 현재 상태에서 계산 (이 경우도 형식화된 값 사용)
+    if (potLastCurrentPot == null || potLastCallAmount == null) {
+      int currentPlayerIndex = bettingRound!.currentPlayerIndex; 
+      Player currentPlayer = players[currentPlayerIndex];
+      
+      // 현재 팟 = 모든 플레이어의 베팅 합계에서 현재 플레이어의 베팅을 뺀 값
+      int rawCurrentPot = players.where((p) => p != currentPlayer).fold(0, (sum, p) => sum + p.bet);
+      // 콜 금액 계산
+      int rawCallAmount = bettingRound!.currentBet - (currentPlayerIndex < players.length ? currentPlayer.bet : 0);
+      
+      // 형식화된 값으로 변환
+      currentPot = int.parse(formatAmount(rawCurrentPot));
+      callAmount = int.parse(formatAmount(rawCallAmount));
+    }
+    
+    int potLimit = potLastLimit ?? (currentPot + callAmount * 2);
     int currentPlayerIndex = bettingRound!.currentPlayerIndex;
     Player currentPlayer = players[currentPlayerIndex];
     
     String potDetailsStr;
     
-    // 저장된 값이 있으면 확실하게 그 값을 사용하도록 확실히 함
-    if (potLastCurrentPot != null && potLastCurrentPot! > 0) {
-      currentPot = potLastCurrentPot!;
-    
-      // 베팅한 모든 플레이어(현재 POT!을 외친 플레이어 제외, 폴드한 플레이어 포함)
-      List<Player> bettingPlayersExceptCurrent = players.where((p) => p.bet > 0 && p != currentPlayer).toList();
-    
-      // 저장된 현재팟 값이 있으면 그 값을 기반으로 표시
-      potDetailsStr = bettingPlayersExceptCurrent.map((p) {
-        String posName = '';
-        switch(p.position) {
-          case Position.smallBlind: posName = '(SB)'; break;
-          case Position.bigBlind: posName = '(BB)'; break;
-          case Position.underTheGun: posName = '(UTG)'; break;
-          case Position.hijack: posName = '(HJ)'; break;
-          case Position.cutoff: posName = '(CO)'; break;
-          case Position.dealer: posName = '(DEALER)'; break;
-          default: posName = '';
-        }
-        return '${p.bet}$posName';
-      }).join(' + ');
-      
-      if (bettingPlayersExceptCurrent.length > 1) {
-        potDetailsStr += ' = $currentPot';
-      } else if (bettingPlayersExceptCurrent.isEmpty) {
-        potDetailsStr = '$currentPot'; // 빈 경우에도 저장된 값 표시
+    // 베팅한 모든 플레이어(현재 POT!을 외친 플레이어 제외, 폴드한 플레이어 포함)
+    List<Player> bettingPlayersExceptCurrent = players.where((p) => p.bet > 0 && p != currentPlayer).toList();
+  
+    // 저장된 현재팟 값이 있으면 그 값을 기반으로 표시
+    potDetailsStr = bettingPlayersExceptCurrent.map((p) {
+      String posName = '';
+      switch(p.position) {
+        case Position.smallBlind: posName = '(SB)'; break;
+        case Position.bigBlind: posName = '(BB)'; break;
+        case Position.underTheGun: posName = '(UTG)'; break;
+        case Position.hijack: posName = '(HJ)'; break;
+        case Position.cutoff: posName = '(CO)'; break;
+        case Position.dealer: posName = '(DEALER)'; break;
+        default: posName = '';
       }
-    } else {
-      // 저장된 값이 없으면 현재 베팅을 합산해서 사용 (현재 플레이어 제외)
-      // 모든 플레이어의 베팅을 합산하되, 현재 POT!을 외친 플레이어는 제외
-      currentPot = players.where((p) => p != currentPlayer).fold(0, (sum, p) => sum + p.bet);
-      
-      // 베팅한 모든 플레이어(현재 POT!을 외친 플레이어 제외, 폴드한 플레이어 포함)
-      List<Player> bettingPlayersExceptCurrent = players.where((p) => p.bet > 0 && p != currentPlayer).toList();
-      
-      potDetailsStr = bettingPlayersExceptCurrent.map((p) {
-        String posName = '';
-        switch(p.position) {
-          case Position.smallBlind: posName = '(SB)'; break;
-          case Position.bigBlind: posName = '(BB)'; break;
-          case Position.underTheGun: posName = '(UTG)'; break;
-          case Position.hijack: posName = '(HJ)'; break;
-          case Position.cutoff: posName = '(CO)'; break;
-          case Position.dealer: posName = '(DEALER)'; break;
-          default: posName = '';
-      }
-        return '${p.bet}$posName';
-      }).join(' + ');
-      
-      if (bettingPlayersExceptCurrent.length > 1) {
-        potDetailsStr += ' = $currentPot';
-      } else if (bettingPlayersExceptCurrent.isEmpty) {
-        potDetailsStr = '0';
+      // 각 플레이어의 베팅도 형식화된 값으로 표시
+      return '${formatAmount(p.bet)}$posName';
+    }).join(' + ');
+    
+    if (bettingPlayersExceptCurrent.length > 1) {
+      potDetailsStr += ' = $currentPot';
+    } else if (bettingPlayersExceptCurrent.isEmpty) {
+      potDetailsStr = '$currentPot'; // 빈 경우에도 저장된 값 표시
     }
-    }
+    
     // 계산식은 저장된 값 사용
     int calculatedPotLimit = currentPot + callAmount * 2;
     
@@ -500,13 +496,25 @@ $correctAnswerText
       return true;
     }
     
-    // 금액 단위 설정 (1500/3000 블라인드일 경우 500단위로 조정)
-    int step = smallBlind == 1500 ? 500 : 100;
+    // 금액 단위 설정 (1500-4000 블라인드일 경우 500단위, 4000 이상은 1000단위로)
+    int step;
+    if (smallBlind >= 1500 && smallBlind < 4000) {
+      step = 500;
+    } else if (smallBlind >= 4000) {
+      step = 1000;
+    } else {
+      step = 100;
+    }
+    
     int numSteps = ((maxRaise - minRaise) ~/ step) + 1;
     int raiseAmount = minRaise + (numSteps > 1 ? random.nextInt(numSteps) * step : 0);
     
+    // 금액을 형식화하여 표시용 값과 계산용 값 생성
+    String formattedAmount = formatAmount(raiseAmount);
+    int displayRaiseAmount = int.parse(formattedAmount);
+    
     // 최종 레이즈 금액이 플레이어 칩보다 많으면 올인
-    if (raiseAmount > player.chips) {
+    if (displayRaiseAmount > player.chips) {
       debugPrint('Action: ALL-IN (부족한 칩) | Player: ${player.name} | 보유 칩: \$${player.chips} | potLimit: \$${potLimit}');
       bettingRound!.performAction('allIn');
       playerActionHistory[playerIndex].add('ALL-IN: ${formatAmount(player.bet)}');
@@ -514,10 +522,10 @@ $correctAnswerText
     }
     
     // 레이즈 후 바로 POT! 액션을 하지 않도록 액션 히스토리에는 레이즈만 기록
-    // 정상적인 레이즈 실행
-    debugPrint('Action: RAISE | Player: ${player.name} | raiseAmount: \$${raiseAmount}');
-    bettingRound!.performAction('raise', raiseAmount);
-    playerActionHistory[playerIndex].add('RAISE: ${formatAmount(raiseAmount)}');
+    // 정상적인 레이즈 실행 - 여기서 형식화된 값(displayRaiseAmount)을 사용
+    debugPrint('Action: RAISE | Player: ${player.name} | raiseAmount: \$${displayRaiseAmount}');
+    bettingRound!.performAction('raise', displayRaiseAmount);
+    playerActionHistory[playerIndex].add('RAISE: $formattedAmount');
     raiseCount++;
     return true;
   }
@@ -557,29 +565,32 @@ $correctAnswerText
     // 현재 팟 = 모든 플레이어의 베팅 합계에서 현재 플레이어의 베팅을 뺀 값
     int currentPot = players.where((p) => p != player).fold(0, (sum, p) => sum + p.bet);
     
+    // 콜 금액과 현재 팟을 formatAmount 기준으로 정리 (UI와 일치시키기 위해)
+    // 형식화된 문자열을 다시 int로 변환하여 계산에 사용
+    int formattedCallAmount = int.parse(formatAmount(callAmount));
+    int formattedCurrentPot = int.parse(formatAmount(currentPot));
+    
+    // 팟 리밋 계산 - 형식화된 값을 사용하여 일관성 유지
+    int formattedPotLimit = formattedCurrentPot + formattedCallAmount * 2;
+    
     // 최종 POT 베팅은 플레이어의 최대 베팅 가능 금액과 팟 리밋 중 작은 값
     int totalPlayerChips = player.chips + player.bet;
-    int potBet = min(potLimit, totalPlayerChips);
+    int potBet = min(formattedPotLimit, totalPlayerChips);
     
-    // 1500/3000 블라인드일 경우 500단위로 조정
-    if (smallBlind == 1500) {
-      potBet = (potBet ~/ 500) * 500;
-    }
-    
-    // POT 액션 정보 저장 - 확실하게 현재 값 저장
+    // POT 액션 정보 저장 - 확실하게 형식화된 값 저장
     potCorrectAnswer = potBet;
-    potLastCurrentPot = currentPot; // 현재팟 저장(현재 플레이어 베팅 제외)
-    potLastCallAmount = callAmount; // 콜 금액 저장
-    potLastLimit = potLimit;
+    potLastCurrentPot = formattedCurrentPot; // 형식화된 현재팟 저장
+    potLastCallAmount = formattedCallAmount; // 형식화된 콜 금액 저장
+    potLastLimit = formattedPotLimit;        // 형식화된 팟 리밋 저장
     
     debugPrint('------ POT! 계산 상세 ------');
-    debugPrint('현재 팟: \$${currentPot} | 콜 금액: \$${callAmount}');
-    debugPrint('플레이어 총 칩: \$${totalPlayerChips} | 팟 리밋: \$${potLimit}');
+    debugPrint('현재 팟: \$${formattedCurrentPot} | 콜 금액: \$${formattedCallAmount}');
+    debugPrint('플레이어 총 칩: \$${totalPlayerChips} | 팟 리밋: \$${formattedPotLimit}');
     debugPrint('최종 POT 베팅: \$${potBet}');
     debugPrint('Action: POT! | Player: ${player.name} | potBet: \$${potBet}');
     
     // POT 액션 수행 - 팟 리밋을 존중
-    if (player.chips <= potLimit - player.bet) {
+    if (player.chips <= formattedPotLimit - player.bet) {
       // 칩이 부족하면 올인
       debugPrint('플레이어 칩이 부족하여 올인');
       bettingRound!.performAction('allIn');

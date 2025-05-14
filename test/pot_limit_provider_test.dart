@@ -20,15 +20,27 @@ void main() {
     });
 
     test('formatAmount 함수 테스트', () {
-      // 일반 블라인드일 때 (1500이 아닌 경우)
+      // 일반 블라인드일 때 (1500 미만인 경우)
       provider.smallBlind = 100;
       expect(provider.formatAmount(1000), '1000');
       expect(provider.formatAmount(123), '123');
       
-      // 1500/3000 블라인드일 때 (500 단위로 올림)
+      // 1500-4000 미만 블라인드일 때 (500 단위로 올림)
       provider.smallBlind = 1500;
-      expect(provider.formatAmount(1750), '2000'); // 1750 + 250 = 2000 (500단위로 올림)
-      expect(provider.formatAmount(3300), '3500'); // 3300 + 250 = 3550 -> 3500 (500단위로 올림)
+      expect(provider.formatAmount(1750), '2000'); // 1750 올림 -> 2000 (500단위)
+      expect(provider.formatAmount(3300), '3500'); // 3300 올림 -> 3500 (500단위)
+      
+      provider.smallBlind = 3000;
+      expect(provider.formatAmount(2800), '3000'); // 2800 올림 -> 3000 (500단위)
+      expect(provider.formatAmount(3100), '3500'); // 3100 올림 -> 3500 (500단위)
+      
+      // 4000 이상 블라인드일 때 (1000 단위로 올림)
+      provider.smallBlind = 4000;
+      expect(provider.formatAmount(4100), '5000'); // 4100 올림 -> 5000 (1000단위)
+      expect(provider.formatAmount(5400), '6000'); // 5400 올림 -> 6000 (1000단위)
+      
+      provider.smallBlind = 5000;
+      expect(provider.formatAmount(9100), '10000'); // 9100 올림 -> 10000 (1000단위)
     });
 
     test('게임 시작 시 플레이어 초기화', () {

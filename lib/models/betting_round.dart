@@ -157,8 +157,7 @@ class BettingRound {
   }
 
   int getStep(int sb) {
-    if (sb >= 1500 && sb < 4000) return 500;
-    if (sb >= 4000) return 1000;
+    // 항상 100 단위로 고정
     return 100;
   }
 
@@ -208,7 +207,6 @@ class BettingRound {
         break;
       case 'raise':
         if (amount == null || amount <= currentBet) return 0;
-        amount = ((amount + step - 1) ~/ step) * step;
         int potLimit = calculatePotLimit();
         int maxBet = currentPlayer.chips + currentPlayer.bet;
         int adjustedAmount = amount;
