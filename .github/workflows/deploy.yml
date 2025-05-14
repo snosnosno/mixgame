@@ -17,7 +17,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          submodules: 'false'
+          submodules: false
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -36,8 +36,8 @@ jobs:
         run: flutter build web --base-href=/mixgame/
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: build/web
-          publish_branch: gh-pages 
+          folder: build/web
+          branch: gh-pages
+          clean: true 
