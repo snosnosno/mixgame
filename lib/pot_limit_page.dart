@@ -142,6 +142,8 @@ class _PotLimitPageState extends State<PotLimitPage> {
   void performPlayerAction(int playerIndex) {
     if (isPotGuessing || bettingRound == null) return;
 
+    print('\n======= 액션 시작: Player ${playerIndex+1} =======');
+    
     var player = players[playerIndex];
     // 연속적으로 올인/폴드 상태면 계속 nextPlayer()
     bool allPlayersInactive = true;
@@ -186,8 +188,14 @@ class _PotLimitPageState extends State<PotLimitPage> {
     final random = Random();
     int action = random.nextInt(100);
 
+    // 액션 정보 저장할 변수
+    String actionType = '';
+    int actionAmount = 0;
+    bool updateNeeded = false;
+
     if (action < 30) {
       // 30% 확률로 "레이즈"
+      actionType = 'RAISE';
       // 현재 테이블의 최대 베팅액을 찾습니다
       int maxTableBet = 0;
       for (var p in players) {
@@ -249,19 +257,22 @@ class _PotLimitPageState extends State<PotLimitPage> {
       // *** 중요: 내부 처리를 먼저 완료한 후 UI 업데이트 ***
       
       // 1. 베팅 실행 - 내부 처리 수행
+      print('베팅 실행 전: targetBet=$targetBet');
       bettingRound!.performAction('setBet', targetBet);
+      print('베팅 실행 직후: lastRaiseAmount=${bettingRound!.lastRaiseAmount}');
       
-      // 2. 실제 처리된 값 확인 (내부 처리 후의 실제 값)
-      int finalRaiseAmount = bettingRound!.lastRaiseAmount;
+      print('베팅 처리 후: ${player.name} | 이전 베팅: $prevBet | 최종 베팅: ${player.bet} | 실제 레이즈: ${bettingRound!.lastRaiseAmount}');
       
-      print('베팅 처리 후: ${player.name} | 이전 베팅: $prevBet | 최종 베팅: ${player.bet} | 실제 레이즈: $finalRaiseAmount');
+      // 2. 액션 정보 저장
+      actionAmount = bettingRound!.lastRaiseAmount;
       
-      // 3. UI 업데이트 - 실제 처리된 값으로 업데이트
+      // 3. UI 정보 업데이트 (setState는 아직 호출하지 않음)
       playerActionHistory[playerIndex].clear();
-      playerActionHistory[playerIndex].add('RAISE: $finalRaiseAmount');
-      setState(() {}); // UI 업데이트 강제 적용
+      playerActionHistory[playerIndex].add('$actionType: $actionAmount');
+      print('Action 처리 완료: $actionType: $actionAmount');
       
       raiseCount++;
+      updateNeeded = true;
     } else if (action < 50) {
       // 20% 확률로 "콜"
       // 현재 테이블의 최대 베팅액을 찾습니다
@@ -283,60 +294,77 @@ class _PotLimitPageState extends State<PotLimitPage> {
         int prevBet = player.bet;
         if (callAmount > player.chips) {
           // 올인 케이스
+          actionType = 'ALL-IN';
           print('Action: ALL-IN (콜 금액 부족) | Player: ${player.name} | 보유 칩: ${player.chips} | 콜 금액: $callAmount');
           
           // 1. 내부 처리 수행
           int targetBet = prevBet + player.chips;
+          print('올인 처리 전: targetBet=$targetBet');
           bettingRound!.performAction('setBet', targetBet);
+          print('올인 처리 후: player.bet=${player.bet}');
           
-          // 2. 실제 처리된 값 확인
-          int actualAllInAmount = player.bet;
+          // 2. 액션 정보 저장
+          actionAmount = player.bet;
           
-          // 3. UI 업데이트
+          // 3. UI 정보 업데이트 (setState는 아직 호출하지 않음)
           playerActionHistory[playerIndex].clear();
-          playerActionHistory[playerIndex].add('ALL-IN: $actualAllInAmount');
-          setState(() {}); // UI 업데이트 강제 적용
+          playerActionHistory[playerIndex].add('$actionType: $actionAmount');
+          print('Action 처리 완료: $actionType: $actionAmount');
+          updateNeeded = true;
         } else {
           // 정상 콜 케이스
+          actionType = 'CALL';
           int targetBet = maxTableBet;
           print('액션: CALL | 플레이어: ${player.name} | 금액: $callAmount | 타겟 베팅: $targetBet');
           
           // 1. 내부 처리 수행
           int prevBet = player.bet;
+          print('콜 처리 전: prevBet=$prevBet, targetBet=$targetBet');
           bettingRound!.performAction('setBet', targetBet);
+          print('콜 처리 후: player.bet=${player.bet}, 차이=${player.bet - prevBet}');
           
-          // 2. 실제 처리된 값 확인
-          int actualCallAmount = player.bet - prevBet;
+          // 2. 액션 정보 저장
+          actionAmount = player.bet - prevBet;
           
-          // 3. UI 업데이트
+          // 3. UI 정보 업데이트 (setState는 아직 호출하지 않음)
           if (player.position != Position.bigBlind && player.position != Position.smallBlind) {
             playerActionHistory[playerIndex].clear();
           }
-          playerActionHistory[playerIndex].add('CALL: $actualCallAmount');
-          setState(() {}); // UI 업데이트 강제 적용
+          playerActionHistory[playerIndex].add('$actionType: $actionAmount');
+          print('Action 처리 완료: $actionType: $actionAmount');
+          updateNeeded = true;
         }
       } else {
         // 체크 케이스
+        actionType = 'CHECK';
         // 1. 내부 처리 수행
+        print('CHECK 처리 전');
         bettingRound!.performAction('check');
+        print('CHECK 처리 후');
         
-        // 2. UI 업데이트
+        // 2. UI 정보 업데이트 (setState는 아직 호출하지 않음)
         playerActionHistory[playerIndex].clear();
-        playerActionHistory[playerIndex].add('CHECK');
-        setState(() {}); // UI 업데이트 강제 적용
+        playerActionHistory[playerIndex].add(actionType);
+        print('Action 처리 완료: $actionType');
+        updateNeeded = true;
       }
     } else if (action < 70) {
       // 20% 확률로 "폴드"
+      actionType = 'FOLD';
       print('Action: FOLD | Player: ${player.name}');
       
       // 1. 내부 처리 수행
+      print('FOLD 처리 전');
       bettingRound!.performAction('fold');
+      print('FOLD 처리 후: player.isFolded=${player.isFolded}');
       
-      // 2. UI 업데이트
-      playerActionHistory[playerIndex].add('FOLD');
-      setState(() {}); // UI 업데이트 강제 적용
+      // 2. UI 정보 업데이트 (setState는 아직 호출하지 않음)
+      playerActionHistory[playerIndex].add(actionType);
+      print('Action 처리 완료: $actionType');
+      updateNeeded = true;
     } else {
       // 30% 확률로 "POT!" (항상 최대금액으로 베팅)
+      actionType = 'POT!';
       // 현재 테이블의 최대 베팅액을 찾습니다
       int maxTableBet = 0;
       for (var p in players) {
@@ -379,20 +407,35 @@ class _PotLimitPageState extends State<PotLimitPage> {
       print('Action: POT! | Player: ${player.name} | potBet: $targetBet');
       
       // 1. 내부 처리 수행
+      print('POT 처리 전: targetBet=$targetBet');
       bettingRound!.performAction('setBet', targetBet);
+      print('POT 처리 후: player.bet=${player.bet}, lastRaiseAmount=${bettingRound!.lastRaiseAmount}');
       
-      // 2. 실제 처리된 값 확인
+      // 2. 실제 처리된 값과 정답 설정
       potCorrectAnswer = player.bet; // 실제 베팅된 최종 금액
-      int finalRaiseAmount = bettingRound!.lastRaiseAmount;
+      actionAmount = bettingRound!.lastRaiseAmount;
       
-      // 3. UI 업데이트
+      // 3. UI 정보 업데이트 (setState는 아직 호출하지 않음)
       playerActionHistory[playerIndex].clear();
-      playerActionHistory[playerIndex].add('POT! ($finalRaiseAmount)');
+      playerActionHistory[playerIndex].add('$actionType ($actionAmount)');
+      print('Action 처리 완료: $actionType: $actionAmount');
       
       isPotGuessing = true;
       resultMessage = '';
       raiseCount++;
-      setState(() {}); // UI 업데이트 강제 적용
+      updateNeeded = true;
+    }
+    
+    // 모든 액션 처리 후 한 번에 UI 업데이트
+    if (updateNeeded) {
+      print('최종 UI 업데이트: actionType=$actionType, actionAmount=$actionAmount');
+      print('최종 playerActionHistory: $playerActionHistory');
+      
+      setState(() {
+        // 여기서는 이미 모든 데이터가 업데이트 되어 있기 때문에 
+        // setState 내부에서 추가 로직 없이 UI 업데이트만 트리거함
+        print('최종 setState 호출: Player ${playerIndex+1}, Action: $actionType, Amount: $actionAmount');
+      });
     }
     
     // 액션 후에도 모든 플레이어의 상태 다시 확인
@@ -411,6 +454,8 @@ class _PotLimitPageState extends State<PotLimitPage> {
         startNewGame();
       });
     }
+    
+    print('======= 액션 종료: Player ${playerIndex+1} =======\n');
   }
 
   void startNewGame() {
