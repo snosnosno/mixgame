@@ -106,37 +106,34 @@ class PotLimitProvider extends ChangeNotifier {
 
   /// 금액 형식화 함수
   String formatAmount(int amount) {
-    // 금액 단위 조정 로직
-    // SB가 1500-4000미만인 경우 500단위, SB가 4000 이상일 경우 1000단위로 조정
-    int sb = smallBlind;
-    
-    if (sb >= 1500 && sb < 4000) {
-      int step = 500;
-      
-      // 웹 호환성을 위한 안전한 반올림 방식 (JavaScript에서도 동일하게 작동)
-      int quotient = amount ~/ step;
-      int remainder = amount % step;
-      
-      if (remainder > 0) {
-        quotient += 1; // 나머지가 있으면 올림
-      }
-      
-      return (quotient * step).toString();
-    } else if (sb >= 4000) {
-      int step = 1000;
-      
-      // 웹 호환성을 위한 안전한 반올림 방식 (JavaScript에서도 동일하게 작동)
-      int quotient = amount ~/ step;
-      int remainder = amount % step;
-      
-      if (remainder > 0) {
-        quotient += 1; // 나머지가 있으면 올림
-      }
-      
-      return (quotient * step).toString();
+    // 계산 오류 방지를 위한 null 체크
+    if (amount == null || amount < 0) {
+      return "0";
     }
     
-    return amount.toString();
+    int sb = smallBlind;
+    int step = 0;
+    
+    // 단계별 반올림 설정
+    if (sb >= 1500 && sb < 4000) {
+      step = 500;
+    } else if (sb >= 4000) {
+      step = 1000;
+    } else {
+      // 기본 소액 블라인드일 경우는 그대로 반환
+      return amount.toString();
+    }
+    
+    // 웹과 네이티브 모두에서 안정적으로 작동하는 올림 처리 방식
+    int remainder = amount % step;
+    if (remainder == 0) {
+      // 이미 정확한 단위면 그대로 반환
+      return amount.toString();
+    } else {
+      // 올림 처리 - 가장 단순하고 안전한 방식 사용
+      int roundedUp = amount + (step - remainder);
+      return roundedUp.toString();
+    }
   }
 
   /// 블라인드 직접 설정 함수
@@ -265,8 +262,10 @@ class PotLimitProvider extends ChangeNotifier {
       int rawCallAmount = bettingRound!.currentBet - (currentPlayerIndex < players.length ? currentPlayer.bet : 0);
       
       // 형식화된 값으로 변환
-      currentPot = int.parse(formatAmount(rawCurrentPot));
-      callAmount = int.parse(formatAmount(rawCallAmount));
+      String currentPotStr = formatAmount(rawCurrentPot);
+      String callAmountStr = formatAmount(rawCallAmount);
+      currentPot = int.tryParse(currentPotStr) ?? rawCurrentPot;
+      callAmount = int.tryParse(callAmountStr) ?? rawCallAmount;
     }
     
     int potLimit = potLastLimit ?? (currentPot + callAmount * 2);
@@ -291,7 +290,8 @@ class PotLimitProvider extends ChangeNotifier {
         default: posName = '';
       }
       // 각 플레이어의 베팅도 형식화된 값으로 표시
-      return '${formatAmount(p.bet)}$posName';
+      String betStr = formatAmount(p.bet);
+      return '$betStr$posName';
     }).join(' + ');
     
     if (bettingPlayersExceptCurrent.length > 1) {
@@ -574,25 +574,27 @@ $correctAnswerText
   
   /// POT 액션 실행
   bool _performPotAction(Player player, int playerIndex) {
-    int potLimit = bettingRound!.calculatePotLimit();
-    
     // 콜 금액 계산
-    int callAmount = bettingRound!.currentBet;
+    int callAmount = bettingRound!.currentBet - player.bet;
+    if (callAmount < 0) callAmount = 0;
     
     // 현재 팟 = 모든 플레이어의 베팅 합계에서 현재 플레이어의 베팅을 뺀 값
     int currentPot = players.where((p) => p != player).fold(0, (sum, p) => sum + p.bet);
     
-    // 콜 금액과 현재 팟을 formatAmount 기준으로 정리 (UI와 일치시키기 위해)
+    // 콜 금액과 현재 팟을 formatAmount 기준으로 정리
+    String callAmountStr = formatAmount(callAmount);
+    String currentPotStr = formatAmount(currentPot);
+    
     // 형식화된 문자열을 다시 int로 변환하여 계산에 사용
-    int formattedCallAmount = int.parse(formatAmount(callAmount));
-    int formattedCurrentPot = int.parse(formatAmount(currentPot));
+    int formattedCallAmount = int.tryParse(callAmountStr) ?? callAmount;
+    int formattedCurrentPot = int.tryParse(currentPotStr) ?? currentPot;
     
     // 팟 리밋 계산 - 형식화된 값을 사용하여 일관성 유지
     int formattedPotLimit = formattedCurrentPot + formattedCallAmount * 2;
     
     // 최종 POT 베팅은 플레이어의 최대 베팅 가능 금액과 팟 리밋 중 작은 값
     int totalPlayerChips = player.chips + player.bet;
-    int potBet = min(formattedPotLimit, totalPlayerChips);
+    int potBet = totalPlayerChips < formattedPotLimit ? totalPlayerChips : formattedPotLimit;
     
     // POT 액션 정보 저장 - 확실하게 형식화된 값 저장
     potCorrectAnswer = potBet;
