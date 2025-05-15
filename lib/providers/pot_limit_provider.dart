@@ -106,34 +106,35 @@ class PotLimitProvider extends ChangeNotifier {
 
   /// 금액 형식화 함수
   String formatAmount(int amount) {
-    // 계산 오류 방지를 위한 null 체크
+    // 계산 오류 방지를 위한 기본값 체크
     if (amount == null || amount < 0) {
       return "0";
     }
     
     int sb = smallBlind;
-    int step = 0;
     
-    // 단계별 반올림 설정
+    // 단계별 금액 조정 설정
+    int step = 0;
     if (sb >= 1500 && sb < 4000) {
       step = 500;
     } else if (sb >= 4000) {
       step = 1000;
     } else {
-      // 기본 소액 블라인드일 경우는 그대로 반환
+      // 소액 블라인드일 경우 그대로 반환
       return amount.toString();
     }
     
-    // 웹과 네이티브 모두에서 안정적으로 작동하는 올림 처리 방식
+    // 나머지 연산과 올림 처리를 분리하여 명확하게 구현
     int remainder = amount % step;
+    
+    // 이미 정확한 단위이면 그대로 반환
     if (remainder == 0) {
-      // 이미 정확한 단위면 그대로 반환
       return amount.toString();
-    } else {
-      // 올림 처리 - 가장 단순하고 안전한 방식 사용
-      int roundedUp = amount + (step - remainder);
-      return roundedUp.toString();
     }
+    
+    // 올림 처리 - 웹과 네이티브 모두에서 일관되게 작동하는 방식
+    int roundedUp = amount + (step - remainder);
+    return roundedUp.toString();
   }
 
   /// 블라인드 직접 설정 함수
@@ -574,33 +575,46 @@ $correctAnswerText
   
   /// POT 액션 실행
   bool _performPotAction(Player player, int playerIndex) {
-    // 콜 금액 계산
-    int callAmount = bettingRound!.currentBet - player.bet;
-    if (callAmount < 0) callAmount = 0;
+    // 콜 금액 계산 - 음수 방지
+    int callAmount = 0;
+    if (bettingRound!.currentBet > player.bet) {
+      callAmount = bettingRound!.currentBet - player.bet;
+    }
     
-    // 현재 팟 = 모든 플레이어의 베팅 합계에서 현재 플레이어의 베팅을 뺀 값
-    int currentPot = players.where((p) => p != player).fold(0, (sum, p) => sum + p.bet);
+    // 현재 팟 계산 - fold 메소드 대신 명시적 루프 사용
+    int currentPot = 0;
+    for (Player p in players) {
+      if (p != player) {
+        currentPot += p.bet;
+      }
+    }
     
-    // 콜 금액과 현재 팟을 formatAmount 기준으로 정리
+    // 값 형식화 - 문자열 변환 후 다시 정수로
     String callAmountStr = formatAmount(callAmount);
     String currentPotStr = formatAmount(currentPot);
     
-    // 형식화된 문자열을 다시 int로 변환하여 계산에 사용
+    // 변환된 값으로 안전하게 형변환
     int formattedCallAmount = int.tryParse(callAmountStr) ?? callAmount;
     int formattedCurrentPot = int.tryParse(currentPotStr) ?? currentPot;
     
-    // 팟 리밋 계산 - 형식화된 값을 사용하여 일관성 유지
-    int formattedPotLimit = formattedCurrentPot + formattedCallAmount * 2;
+    // 팟 리밋 계산 - 명시적 괄호 사용
+    int formattedPotLimit = formattedCurrentPot + (formattedCallAmount * 2);
     
-    // 최종 POT 베팅은 플레이어의 최대 베팅 가능 금액과 팟 리밋 중 작은 값
+    // 최종 POT 베팅 계산 - 명시적 if/else 사용
     int totalPlayerChips = player.chips + player.bet;
-    int potBet = totalPlayerChips < formattedPotLimit ? totalPlayerChips : formattedPotLimit;
+    int potBet;
     
-    // POT 액션 정보 저장 - 확실하게 형식화된 값 저장
+    if (totalPlayerChips <= formattedPotLimit) {
+      potBet = totalPlayerChips;
+    } else {
+      potBet = formattedPotLimit;
+    }
+    
+    // POT 액션 정보 저장
     potCorrectAnswer = potBet;
-    potLastCurrentPot = formattedCurrentPot; // 형식화된 현재팟 저장
-    potLastCallAmount = formattedCallAmount; // 형식화된 콜 금액 저장
-    potLastLimit = formattedPotLimit;        // 형식화된 팟 리밋 저장
+    potLastCurrentPot = formattedCurrentPot;
+    potLastCallAmount = formattedCallAmount;
+    potLastLimit = formattedPotLimit;
     
     debugPrint('------ POT! 계산 상세 ------');
     debugPrint('현재 팟: \$${formattedCurrentPot} | 콜 금액: \$${formattedCallAmount}');
@@ -608,7 +622,7 @@ $correctAnswerText
     debugPrint('최종 POT 베팅: \$${potBet}');
     debugPrint('Action: POT! | Player: ${player.name} | potBet: \$${potBet}');
     
-    // POT 액션 수행 - 팟 리밋을 존중
+    // POT 액션 수행
     if (player.chips <= formattedPotLimit - player.bet) {
       // 칩이 부족하면 올인
       debugPrint('플레이어 칩이 부족하여 올인');
@@ -622,24 +636,22 @@ $correctAnswerText
     // POT 효과음 재생
     _playSound('pot');
     
-    // 애니메이션 시작 전에 상태 변경
-    isAnimating = true; // 애니메이션 진행 중으로 표시
-    
-    // POT 애니메이션 활성화
+    // 애니메이션 상태 처리
+    isAnimating = true;
     showPotAnimation = true;
     potAnimationPlayerId = playerIndex;
     
-    // 애니메이션 후 상태 변경을 위한 지연 설정
+    // 애니메이션 후 처리
     Future.delayed(const Duration(milliseconds: 600), () {
-      if (isGameStarted) { // 게임이 여전히 진행 중인지 확인
+      if (isGameStarted) {
         showPotAnimation = false;
         isPotGuessing = true;
-        isAnimating = false; // 애니메이션 완료 상태로 변경
+        isAnimating = false;
         notifyListeners();
       }
     });
     
-    isPotGuessing = false; // 애니메이션 동안은 guessing 상태 비활성화
+    isPotGuessing = false;
     resultMessage = '';
     raiseCount++;
     return true;
