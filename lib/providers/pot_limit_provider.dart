@@ -112,6 +112,7 @@ class PotLimitProvider extends ChangeNotifier {
     
     // null이나 음수 처리
     if (amount < 0) {
+      debugPrint('음수 금액을 0으로 조정: $amount → 0');
       return "0";
     }
     
@@ -138,16 +139,15 @@ class PotLimitProvider extends ChangeNotifier {
       return amount.toString();
     }
     
-    // 반올림 로직을 가장 단순하고 명확한 방식으로 구현
-    // 웹/네이티브 환경 모두에서 동일하게 작동하는 방식
+    // 웹과 네이티브 환경 모두에서 일관되게 작동하는 반올림 로직
     if (amount % step == 0) {
       // 이미 단위에 맞는 값이면 그대로 반환
       debugPrint('이미 단위에 맞는 값: $amount');
       return amount.toString();
     }
     
-    // 올림 처리 - step의 배수로 올림
-    int quotient = amount ~/ step;
+    // 올림 처리 - step의 배수로 올림 (자바스크립트 호환성 확보)
+    int quotient = (amount / step).floor(); // 명시적 floor 사용
     int roundedUp = (quotient + 1) * step;
     
     debugPrint('계산 과정: $amount / $step = $quotient → 올림 = ${quotient + 1} → 최종값 = $roundedUp');
@@ -220,7 +220,8 @@ class PotLimitProvider extends ChangeNotifier {
       numberOfPlayers,
       (index) => Player(
         name: 'Player ${index + 1}',
-        chips: (random.nextInt(599) * 500) + 500,
+        // 최소 칩을 smallBlind의 20배 이상으로 설정하여 음수가 되지 않도록 함
+        chips: max((random.nextInt(599) * 500) + 500, smallBlind * 20),
         hand: [],
         position: Position.values[index % Position.values.length],
       ),
@@ -230,17 +231,19 @@ class PotLimitProvider extends ChangeNotifier {
     // SB, BB 포지션 인덱스 찾기
     int sbIdx = players.indexWhere((p) => p.position == Position.smallBlind);
     int bbIdx = players.indexWhere((p) => p.position == Position.bigBlind);
-    if (sbIdx != -1) {
+    
+    // 플레이어의 칩이 충분한지 확인 후 블라인드 처리
+    if (sbIdx != -1 && players[sbIdx].chips >= smallBlind) {
       players[sbIdx].chips -= smallBlind;
       players[sbIdx].bet = smallBlind;
+      pot.addBet(players[sbIdx], smallBlind);
     }
-    if (bbIdx != -1) {
+    
+    if (bbIdx != -1 && players[bbIdx].chips >= bigBlind) {
       players[bbIdx].chips -= bigBlind;
       players[bbIdx].bet = bigBlind;
+      pot.addBet(players[bbIdx], bigBlind);
     }
-
-    pot.addBet(players[sbIdx], smallBlind);
-    pot.addBet(players[bbIdx], bigBlind);
 
     bettingRound = BettingRound(players: players, pot: pot);
     // UTG가 첫 액션을 하도록 currentPlayerIndex 설정
@@ -438,6 +441,15 @@ $correctAnswerText
   void _performRandomAction(int playerIndex) {
     final random = Random();
     var player = players[bettingRound!.currentPlayerIndex];
+    
+    // 음수 칩스 체크 및 수정
+    for (var p in players) {
+      if (p.chips < 0) {
+        debugPrint('음수 칩스 감지 및 수정: ${p.name}의 칩스가 ${p.chips}에서 0으로 조정됨');
+        p.chips = 0;
+      }
+    }
+    
     bool stateChanged = false;
     
     // 마지막 액션인지 확인 (다음 모든 플레이어가 폴드 또는 올인 상태인 경우)
@@ -592,6 +604,12 @@ $correctAnswerText
   
   /// POT 액션 실행
   bool _performPotAction(Player player, int playerIndex) {
+    // 플레이어 칩스가 음수인지 확인하고 조정
+    if (player.chips < 0) {
+      player.chips = 0;
+      debugPrint('음수 칩스 감지. Player ${player.name}의 칩을 0으로 조정');
+    }
+    
     // 콜 금액 계산 - 음수 방지
     int callAmount = 0;
     if (bettingRound!.currentBet > player.bet) {

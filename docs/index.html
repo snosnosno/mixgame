@@ -25,10 +25,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="POT 계산 연습">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
-  
+
   <!-- Android meta tags -->
   <meta name="mobile-web-app-capable" content="yes">
-
+  
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
@@ -37,6 +37,9 @@
 
   <!-- JavaScript 호환성 폴리필 -->
   <script>
+    // 디버깅 소스맵 관련 오류 방지
+    window.preventSourceMapsErrorLogging = true;
+    
     // JavaScript 정수 나눗셈 폴리필
     Math.trunc = Math.trunc || function(x) {
       return x < 0 ? Math.ceil(x) : Math.floor(x);
@@ -52,18 +55,34 @@
       return ((a % b) + b) % b;
     };
 
-    // 넘버링 연산 조정
+    // 넘버링 연산 조정 - 단위 반올림 처리
     Number.prototype.dartRoundUp = function(step) {
+      if (!step || step <= 0) return this.valueOf();
       var value = this.valueOf();
+      if (value < 0) return 0;
       var remainder = value % step;
       if (remainder === 0) return value;
       return value + (step - remainder);
     };
+    
+    // IntI.v8BreakIterator 대신 IntlSegmenter 사용 문제 해결
+    if (typeof Intl !== 'undefined' && !Intl.v8BreakIterator) {
+      Intl.v8BreakIterator = function() {
+        if (Intl.Segmenter) {
+          return new Intl.Segmenter();
+        }
+        // 폴백 처리
+        return {
+          adoptText: function() {},
+          next: function() { return { done: true }; }
+        };
+      };
+    }
   </script>
 
   <script>
     // The value below is injected by flutter build, do not touch.
-    const serviceWorkerVersion = "2571677844";
+    const serviceWorkerVersion = null;
   </script>
   <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
@@ -71,6 +90,40 @@
 <body>
   <script>
     window.addEventListener('load', function(ev) {
+      // 디버깅 오류 처리
+      window.addEventListener('error', function(event) {
+        // 소스 맵 오류 무시
+        if (event.filename && event.filename.includes('.map')) {
+          event.preventDefault();
+          return false;
+        }
+      });
+      
+      // 폼 필드 요소 속성 자동 수정 - id나 name 속성이 없는 경우 추가
+      function fixFormElements() {
+        const inputs = document.querySelectorAll('input, textarea, select');
+        inputs.forEach(function(input, index) {
+          if (!input.id && !input.name) {
+            input.id = 'flutter-input-' + index;
+          }
+        });
+      }
+      
+      // DOM 변화 감지하여 폼 요소 수정
+      const observer = new MutationObserver(function(mutations) {
+        fixFormElements();
+      });
+      
+      // 문서 본문 관찰 시작
+      setTimeout(function() {
+        observer.observe(document.body, { 
+          childList: true, 
+          subtree: true 
+        });
+        // 초기 실행
+        fixFormElements();
+      }, 1000);
+      
       // 캐시 강제 갱신을 위한 설정
       window.applicationCacheEnabled = false;
 
@@ -85,16 +138,6 @@
       _flutter.loader.load({
         serviceWorker: {
           serviceWorkerVersion: serviceWorkerVersion,
-        },
-        onEntrypointLoaded: function(engineInitializer) {
-          engineInitializer.initializeEngine({
-            // 메모리 설정 최적화
-            useColorEmoji: true,
-            // 웹 성능 향상 설정
-            canvasKitMaximumSurfaces: 8
-          }).then(function(appRunner) {
-            appRunner.runApp();
-          });
         }
       });
     });
