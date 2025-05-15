@@ -109,14 +109,17 @@ class PotLimitProvider extends ChangeNotifier {
     // 금액 단위 조정 로직
     // SB가 1500-4000미만인 경우 500단위, SB가 4000 이상일 경우 1000단위로 조정
     int sb = smallBlind;
-    int step;
     
     if (sb >= 1500 && sb < 4000) {
-      step = 500;
-      return ((amount / step).ceil() * step).toString();
+      int step = 500;
+      // JavaScript 호환성을 위해 나눗셈과 올림 연산을 분리하고 정수형으로 변환
+      int rounded = ((amount + step - 1) ~/ step) * step;
+      return rounded.toString();
     } else if (sb >= 4000) {
-      step = 1000;
-      return ((amount / step).ceil() * step).toString();
+      int step = 1000;
+      // JavaScript 호환성을 위해 나눗셈과 올림 연산을 분리하고 정수형으로 변환
+      int rounded = ((amount + step - 1) ~/ step) * step;
+      return rounded.toString();
     }
     
     return amount.toString();
