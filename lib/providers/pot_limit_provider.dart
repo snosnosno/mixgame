@@ -106,34 +106,43 @@ class PotLimitProvider extends ChangeNotifier {
 
   /// 금액 형식화 함수
   String formatAmount(int amount) {
-    // 계산 오류 방지를 위한 기본값 체크
-    if (amount == null || amount < 0) {
+    debugPrint('원본 금액: $amount');
+    
+    // null이나 음수 처리
+    if (amount < 0) {
       return "0";
     }
     
     int sb = smallBlind;
+    debugPrint('스몰블라인드: $sb');
     
     // 단계별 금액 조정 설정
     int step = 0;
     if (sb >= 1500 && sb < 4000) {
       step = 500;
+      debugPrint('500단위 반올림 적용');
     } else if (sb >= 4000) {
       step = 1000;
+      debugPrint('1000단위 반올림 적용');
     } else {
       // 소액 블라인드일 경우 그대로 반환
+      debugPrint('반올림 없이 그대로 반환');
       return amount.toString();
     }
     
-    // 나머지 연산과 올림 처리를 분리하여 명확하게 구현
-    int remainder = amount % step;
-    
-    // 이미 정확한 단위이면 그대로 반환
-    if (remainder == 0) {
+    // 반올림 로직을 가장 단순하고 명확한 방식으로 구현
+    // 웹/네이티브 환경 모두에서 동일하게 작동하는 방식
+    if (amount % step == 0) {
+      // 이미 단위에 맞는 값이면 그대로 반환
+      debugPrint('이미 단위에 맞는 값: $amount');
       return amount.toString();
     }
     
-    // 올림 처리 - 웹과 네이티브 모두에서 일관되게 작동하는 방식
-    int roundedUp = amount + (step - remainder);
+    // 올림 처리 - step의 배수로 올림
+    int quotient = amount ~/ step;
+    int roundedUp = (quotient + 1) * step;
+    
+    debugPrint('계산 과정: $amount / $step = $quotient → 올림 = ${quotient + 1} → 최종값 = $roundedUp');
     return roundedUp.toString();
   }
 
