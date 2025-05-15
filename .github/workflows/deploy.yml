@@ -32,7 +32,7 @@ jobs:
         run: flutter pub get
         
       - name: Build web
-        run: flutter build web --base-href=/mixgame/ --release
+        run: flutter build web --release
         
       - name: Create clean directory for deployment
         run: |
