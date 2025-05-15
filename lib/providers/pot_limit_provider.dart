@@ -112,14 +112,28 @@ class PotLimitProvider extends ChangeNotifier {
     
     if (sb >= 1500 && sb < 4000) {
       int step = 500;
-      // JavaScript 호환성을 위해 나눗셈과 올림 연산을 분리하고 정수형으로 변환
-      int rounded = ((amount + step - 1) ~/ step) * step;
-      return rounded.toString();
+      
+      // 웹 호환성을 위한 안전한 반올림 방식 (JavaScript에서도 동일하게 작동)
+      int quotient = amount ~/ step;
+      int remainder = amount % step;
+      
+      if (remainder > 0) {
+        quotient += 1; // 나머지가 있으면 올림
+      }
+      
+      return (quotient * step).toString();
     } else if (sb >= 4000) {
       int step = 1000;
-      // JavaScript 호환성을 위해 나눗셈과 올림 연산을 분리하고 정수형으로 변환
-      int rounded = ((amount + step - 1) ~/ step) * step;
-      return rounded.toString();
+      
+      // 웹 호환성을 위한 안전한 반올림 방식 (JavaScript에서도 동일하게 작동)
+      int quotient = amount ~/ step;
+      int remainder = amount % step;
+      
+      if (remainder > 0) {
+        quotient += 1; // 나머지가 있으면 올림
+      }
+      
+      return (quotient * step).toString();
     }
     
     return amount.toString();
