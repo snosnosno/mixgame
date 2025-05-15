@@ -91,7 +91,9 @@ class PotLimitProvider extends ChangeNotifier {
           break;
       }
     } catch (e) {
+      // 웹 환경에서 오디오 파일 로드 실패 시 조용히 오류 로깅만 수행
       debugPrint('효과음 재생 오류: $e');
+      // 게임 플레이에 영향을 주지 않도록 아무 작업도 수행하지 않음
     }
   }
 
@@ -111,6 +113,12 @@ class PotLimitProvider extends ChangeNotifier {
     // null이나 음수 처리
     if (amount < 0) {
       return "0";
+    }
+    
+    // 작은 입력값 처리 (숫자 입력 필드에서 입력할 때 사용될 수 있음)
+    if (amount < 100) {
+      debugPrint('POT 숫자 입력 필드 처리: $amount');
+      return amount.toString();
     }
     
     int sb = smallBlind;
@@ -734,7 +742,9 @@ $correctAnswerText
     debugPrint('--- CHECK POT GUESS ---');
     debugPrint('User guess: \$${userGuess} | Correct: \$${correctPot}');
     
-    if (userGuess == correctPot) {
+    // 정확한 값 또는 95% 이상 정확한 근사치도 정답으로 인정
+    if (userGuess == correctPot || 
+        (correctPot > 0 && (userGuess >= correctPot * 0.95 && userGuess <= correctPot * 1.05))) {
       currentScore++;
       resultMessage = AppLanguage.getText('correctAnswer') + currentScore.toString();
       _playSound('correct'); // 정답 효과음
