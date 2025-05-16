@@ -70,23 +70,31 @@ class _PotLimitPageState extends State<PotLimitPage> {
     int sb = smallBlind;
     int step;
     
-    print('DEBUG_DEPLOY: 원본 금액: $amount | SB: $sb | formatAmount 시작');
+    // 로그를 일관되게 출력하기 위한 함수
+    void logDebug(String message) {
+      // kReleaseMode이 아닐 때만 로그 출력
+      if (!kReleaseMode) {
+        print(message);
+      }
+    }
+    
+    logDebug('DEBUG_DEPLOY: 원본 금액: $amount | SB: $sb | formatAmount 시작');
     
     if (sb >= 1500 && sb < 4000) {  // 3000에서 4000미만으로 조건 변경
       step = 500;
-      print('DEBUG_DEPLOY: 500단위 반올림 적용');
+      logDebug('DEBUG_DEPLOY: 500단위 반올림 적용');
     } else if (sb >= 4000) {
       step = 1000;
-      print('DEBUG_DEPLOY: 1000단위 반올림 적용');
+      logDebug('DEBUG_DEPLOY: 1000단위 반올림 적용');
     } else {
       // 다른 경우에는 조정하지 않음
-      print('DEBUG_DEPLOY: 단위 조정 없음 (SB < 1500)');
+      logDebug('DEBUG_DEPLOY: 단위 조정 없음 (SB < 1500)');
       return amount;
     }
     
     // 500단위 또는 1000단위로 정확히 올림 처리
     int result = (amount / step).ceil() * step;
-    print('DEBUG_DEPLOY: 최종 결과: $result (계산식: (${amount}/${step}).ceil() * ${step})');
+    logDebug('DEBUG_DEPLOY: 최종 결과: $result (계산식: (${amount}/${step}).ceil() * ${step})');
     return result;
   }
 
@@ -149,7 +157,9 @@ class _PotLimitPageState extends State<PotLimitPage> {
   void performPlayerAction(int playerIndex) {
     if (isPotGuessing || bettingRound == null) return;
 
-    print('\n======= 액션 시작: Player ${playerIndex+1} =======');
+    if (!kReleaseMode) {
+      print('\n======= 액션 시작: Player ${playerIndex+1} =======');
+    }
 
     var player = players[playerIndex];
     // 연속적으로 올인/폴드 상태면 계속 nextPlayer()
@@ -179,18 +189,22 @@ class _PotLimitPageState extends State<PotLimitPage> {
     
     // 모든 플레이어가 폴드 또는 올인 상태인 경우 다음 게임으로 진행
     if (allPlayersInactive) {
-      print('모든 플레이어가 폴드 또는 올인 상태입니다. 다음 게임으로 진행합니다.');
+      if (!kReleaseMode) {
+        print('모든 플레이어가 폴드 또는 올인 상태입니다. 다음 게임으로 진행합니다.');
+      }
       Future.delayed(const Duration(seconds: 2), () {
         startNewGame();
       });
       return;
     }
 
-    print('--- Player Status ---');
-    for (var p in players) {
-      print('${p.name} | chips: \$${p.chips} | bet: \$${p.bet} | isAllIn: ${p.isAllIn} | isFolded: ${p.isFolded}');
+    if (!kReleaseMode) {
+      print('--- Player Status ---');
+      for (var p in players) {
+        print('${p.name} | chips: \$${p.chips} | bet: \$${p.bet} | isAllIn: ${p.isAllIn} | isFolded: ${p.isFolded}');
+      }
+      print('lastRaiseAmount: \$${bettingRound?.lastRaiseAmount ?? 0}');
     }
-    print('lastRaiseAmount: \$${bettingRound?.lastRaiseAmount ?? 0}');
 
     final random = Random();
     int action = random.nextInt(100);
@@ -241,48 +255,55 @@ class _PotLimitPageState extends State<PotLimitPage> {
       // 6. 실제 레이즈 금액 계산 (총액 기준)
       int actualRaiseAmount = selectedBet - maxTableBet;  // 순수 레이즈 금액
       
-      // 6.1 레이즈 금액 포맷팅 - 웹 빌드에서 포맷팅이 제대로 적용되지 않는 문제 해결을 위해
-      print('DEBUG_DEPLOY: RAISE 액션 - 포맷 전 actualRaiseAmount: $actualRaiseAmount | SB: $smallBlind');
+      // 6.1 레이즈 금액 포맷팅 - 로그용으로만 사용하는 디버그 정보
+      if (!kReleaseMode) {
+        print('DEBUG_DEPLOY: RAISE 액션 - 포맷 전 actualRaiseAmount: $actualRaiseAmount | SB: $smallBlind');
+      }
       int formattedAmount = formatAmount(actualRaiseAmount);
-      print('DEBUG_DEPLOY: RAISE 액션 - 포맷 후 formattedAmount: $formattedAmount');
+      if (!kReleaseMode) {
+        print('DEBUG_DEPLOY: RAISE 액션 - 포맷 후 formattedAmount: $formattedAmount');
+      }
       
-      // 6.2 포맷팅된 금액으로 selectedBet 재계산 - 이것이 중요한 변경
+      // 6.2 포맷팅된 금액으로 selectedBet 재계산
       selectedBet = maxTableBet + formattedAmount;
       
-      // 7. 최종 타겟 베팅 금액 - formattedAmount 기반으로 업데이트
+      // 7. 최종 타겟 베팅 금액
       int targetBet = selectedBet;
       
-      print('레이즈 계산 상세 -----');
-      print('최대 테이블 베팅: $maxTableBet, 콜 금액: $callAmount, 팟 금액: $totalPot');
-      print('최소 레이즈 금액: $minRaiseAmount, 최소 레이즈 베팅: $minRaiseBet');
-      print('최대 가능 베팅: $maxRaiseBet, 레이즈 범위: $rangeBets');
-      print('선택된 베팅: $selectedBet, 순수 레이즈 금액: $formattedAmount, 타겟 베팅: $targetBet');
-      
-      // ***** 중요 수정: 로그에 표시되는 값과 실제 베팅 값 일치시키기 *****
-      // 액션을 로그에 기록 - 포맷팅된 금액 사용
-      int finalRaiseAmount = formattedAmount; // 명확한 변수 이름으로 수정
-      print('Action: RAISE | Player: ${player.name} | raiseAmount: $finalRaiseAmount');
+      if (!kReleaseMode) {
+        print('레이즈 계산 상세 -----');
+        print('최대 테이블 베팅: $maxTableBet, 콜 금액: $callAmount, 팟 금액: $totalPot');
+        print('최소 레이즈 금액: $minRaiseAmount, 최소 레이즈 베팅: $minRaiseBet');
+        print('최대 가능 베팅: $maxRaiseBet, 레이즈 범위: $rangeBets');
+        print('선택된 베팅: $selectedBet, 순수 레이즈 금액: $formattedAmount, 타겟 베팅: $targetBet');
+        
+        // 8. 베팅 실행 전 실행할 실제 레이즈 금액을 로그에 기록
+        print('Action: RAISE | Player: ${player.name} | raiseAmount: $formattedAmount');
+      }
       
       // 이전 베팅 기록 저장
       int prevBet = player.bet;
       
-      // *** 중요: 내부 처리를 먼저 완료한 후 UI 업데이트 ***
-      
-      // 1. 베팅 실행 - 내부 처리 수행
+      // 9. 베팅 실행 - 내부 처리 수행
       print('베팅 실행 전: targetBet=$targetBet');
       bettingRound!.performAction('setBet', targetBet);
       print('베팅 실행 직후: lastRaiseAmount=${bettingRound!.lastRaiseAmount}');
       
-      print('베팅 처리 후: ${player.name} | 이전 베팅: $prevBet | 최종 베팅: ${player.bet} | 실제 레이즈: ${bettingRound!.lastRaiseAmount}');
+      // 10. 실제 최종 베팅금액 확인
+      int finalBet = player.bet;
+      int finalRaiseAmount = finalBet - prevBet;
+      print('베팅 처리 후: ${player.name} | 이전 베팅: $prevBet | 최종 베팅: $finalBet | 실제 레이즈: $finalRaiseAmount');
       
-      // 2. 액션 정보 저장 - 포맷팅된 금액 사용 (고정된 값 사용)
-      actionAmount = finalRaiseAmount;  // 고정된 formattedAmount 값 사용 (bettingRound!.lastRaiseAmount 사용하지 않음)
+      // 11. UI에 실제 베팅된 금액의 차이를 표시 (중요: 실제 베팅된 값 기반)
+      // 이렇게 하면 화면에 표시되는 금액과 실제 베팅된 금액이 항상 일치하게 됨
+      actionAmount = finalRaiseAmount;
       
-      // 3. UI 정보 업데이트 (setState는 아직 호출하지 않음)
+      // 12. UI 정보 업데이트
       playerActionHistory[playerIndex].clear();
-      print('Formatting RAISE amount: $actualRaiseAmount -> $finalRaiseAmount (SB: $smallBlind)');
-      playerActionHistory[playerIndex].add('$actionType: $finalRaiseAmount');
-      print('Action 처리 완료: $actionType: $finalRaiseAmount');
+      // 중요: UI에 표시할 정확한 금액 사용
+      print('UI에 표시할 RAISE 금액: $actionAmount');
+      playerActionHistory[playerIndex].add('$actionType: $actionAmount');
+      print('Action 처리 완료: $actionType: $actionAmount');
       
       raiseCount++;
       updateNeeded = true;
@@ -308,7 +329,9 @@ class _PotLimitPageState extends State<PotLimitPage> {
       if (callAmount > player.chips) {
           // 올인 케이스
           actionType = 'ALL-IN';
-          print('Action: ALL-IN (콜 금액 부족) | Player: ${player.name} | 보유 칩: ${player.chips} | 콜 금액: $callAmount');
+          if (!kReleaseMode) {
+            print('Action: ALL-IN (콜 금액 부족) | Player: ${player.name} | 보유 칩: ${player.chips} | 콜 금액: $callAmount');
+          }
           
           // 1. 내부 처리 수행
           int targetBet = prevBet + player.chips;
@@ -328,7 +351,9 @@ class _PotLimitPageState extends State<PotLimitPage> {
           // 정상 콜 케이스
           actionType = 'CALL';
           int targetBet = maxTableBet;
-          print('액션: CALL | 플레이어: ${player.name} | 금액: $callAmount | 타겟 베팅: $targetBet');
+          if (!kReleaseMode) {
+            print('액션: CALL | 플레이어: ${player.name} | 금액: $callAmount | 타겟 베팅: $targetBet');
+          }
           
           // 1. 내부 처리 수행
           int prevBet = player.bet;
@@ -364,7 +389,9 @@ class _PotLimitPageState extends State<PotLimitPage> {
     } else if (action < 70) {
       // 20% 확률로 "폴드"
       actionType = 'FOLD';
-      print('Action: FOLD | Player: ${player.name}');
+      if (!kReleaseMode) {
+        print('Action: FOLD | Player: ${player.name}');
+      }
       
       // 1. 내부 처리 수행
       print('FOLD 처리 전');
@@ -399,50 +426,72 @@ class _PotLimitPageState extends State<PotLimitPage> {
       
       // 최종 POT 베팅 금액은 플레이어 칩 수량과 팟 베팅 중 작은 값
       int rawPotBet = min(potBet, totalPlayerChips);
-      print('DEBUG_DEPLOY: POT! 액션 - 포맷 전 rawPotBet: $rawPotBet | SB: $smallBlind');
+      if (!kReleaseMode) {
+        print('DEBUG_DEPLOY: POT! 액션 - 포맷 전 rawPotBet: $rawPotBet | SB: $smallBlind');
+      }
       
       // 단위 조정 적용 (formatAmount 함수 사용)
       int formattedPotBet = formatAmount(rawPotBet);
-      print('DEBUG_DEPLOY: POT! 액션 - 포맷 후 formattedPotBet: $formattedPotBet');
+      if (!kReleaseMode) {
+        print('DEBUG_DEPLOY: POT! 액션 - 포맷 후 formattedPotBet: $formattedPotBet');
+      }
       
-      // 수정: 포맷팅된 값을 targetBet으로 사용 - 명확한 변수명 사용
-      int finalPotBet = formattedPotBet;
-      int targetBet = finalPotBet;
+      // 계산된 POT 베팅 금액 설정
+      int targetBet = formattedPotBet;
       
-      print('------ POT! 계산 상세 ------');
-      print('현재 팟: $currentPot | 콜 금액: $callAmount');
-      print('플레이어 총 칩: $totalPlayerChips | 팟 리밋: $rawPotBet');
-      print('최종 POT 베팅: $targetBet');
+      if (!kReleaseMode) {
+        print('------ POT! 계산 상세 ------');
+        print('현재 팟: $currentPot | 콜 금액: $callAmount');
+        print('플레이어 총 칩: $totalPlayerChips | 팟 리밋: $rawPotBet');
+        print('최종 POT 베팅: $targetBet');
+      }
       
       // 이전 베팅 값 저장
       int prevBet = player.bet;
       
-      // ***** 중요 수정: 로그에서도 finalPotBet 값 사용 *****
-      print('Action: POT! | Player: ${player.name} | potBet: $finalPotBet');
+      // 로그에 계산된 POT 베팅 금액 기록
+      if (!kReleaseMode) {
+        print('Action: POT! | Player: ${player.name} | potBet: $formattedPotBet');
+      }
       
-      // 1. 내부 처리 수행 - 고정된 targetBet 사용
-      print('POT 처리 전: targetBet=$targetBet');
+      // 베팅 실행
+      if (!kReleaseMode) {
+        print('POT 처리 전: targetBet=$targetBet');
+      }
       
-      // 올인인 경우 별도 처리
+      // 올인인 경우와 일반 베팅을 구분 처리
+      bool isAllIn = false;
       if (targetBet >= player.chips + player.bet) {
-        print('플레이어 칩이 부족하여 올인');
-        // 올인 액션 실행
+        if (!kReleaseMode) {
+          print('플레이어 칩이 부족하여 올인');
+        }
+        isAllIn = true;
         bettingRound!.performAction('allIn');
       } else {
-        // 일반 베팅 실행
         bettingRound!.performAction('setBet', targetBet);
       }
       
-      print('POT 처리 후: player.bet=${player.bet}, lastRaiseAmount=${bettingRound!.lastRaiseAmount}');
+      if (!kReleaseMode) {
+        print('POT 처리 후: player.bet=${player.bet}, lastRaiseAmount=${bettingRound!.lastRaiseAmount}');
+        
+        // 실제 최종 베팅금액 확인 - 실제 베팅된 값을 기준으로 UI 표시
+        int finalBet = player.bet;
+        int finalRaiseAmount = finalBet - prevBet;
+        
+        print('Action 처리 완료: $actionType: $actionAmount | 최종 베팅: $finalBet');
+      }
       
-      // 2. 실제 처리된 값과 정답 설정 - 항상 동일한 finalPotBet 값 사용
-      potCorrectAnswer = finalPotBet; // finalPotBet 고정 값 사용
-      actionAmount = finalPotBet - maxTableBet; // 순수 레이즈 금액 계산 (로그와 일치)
+      // UI에 표시할 정보 설정 (실제 베팅 기준)
+      potCorrectAnswer = finalBet;  // 실제 베팅된 최종 금액
+      actionAmount = finalRaiseAmount;  // 실제 증가된 베팅 금액 (화면에 표시할 금액)
       
-      // 3. UI 정보 업데이트 (setState는 아직 호출하지 않음)
+      // UI 정보 업데이트
       playerActionHistory[playerIndex].clear();
-      playerActionHistory[playerIndex].add(actionType);
-      print('Action 처리 완료: $actionType: $actionAmount');
+      if (isAllIn) {
+        playerActionHistory[playerIndex].add('ALL-IN: $finalBet');
+      } else {
+        playerActionHistory[playerIndex].add(actionType);
+      }
       
       isPotGuessing = true;
       resultMessage = '';
@@ -452,34 +501,42 @@ class _PotLimitPageState extends State<PotLimitPage> {
     
     // 모든 액션 처리 후 한 번에 UI 업데이트
     if (updateNeeded) {
-      print('최종 UI 업데이트: actionType=$actionType, actionAmount=$actionAmount');
-      print('최종 playerActionHistory: $playerActionHistory');
+      if (!kReleaseMode) {
+        print('최종 UI 업데이트: actionType=$actionType, actionAmount=$actionAmount');
+        print('최종 playerActionHistory: $playerActionHistory');
+      }
       
       setState(() {
         // 여기서는 이미 모든 데이터가 업데이트 되어 있기 때문에 
         // setState 내부에서 추가 로직 없이 UI 업데이트만 트리거함
-        print('최종 setState 호출: Player ${playerIndex+1}, Action: $actionType, Amount: $actionAmount');
+        if (!kReleaseMode) {
+          print('최종 setState 호출: Player ${playerIndex+1}, Action: $actionType, Amount: $actionAmount');
+        }
       });
     }
       
-      // 액션 후에도 모든 플레이어의 상태 다시 확인
-      bool allInactiveAfterAction = true;
-      for (var p in players) {
-        if (!p.isFolded && !p.isAllIn) {
-          allInactiveAfterAction = false;
-          break;
-        }
+    // 액션 후에도 모든 플레이어의 상태 다시 확인
+    bool allInactiveAfterAction = true;
+    for (var p in players) {
+      if (!p.isFolded && !p.isAllIn) {
+        allInactiveAfterAction = false;
+        break;
       }
-      
-      // 모든 플레이어가 폴드 또는 올인 상태인 경우 다음 게임으로 진행
-      if (allInactiveAfterAction && !isPotGuessing) {
-        print('액션 후 모든 플레이어가 폴드 또는 올인 상태입니다. 다음 게임으로 진행합니다.');
-        Future.delayed(const Duration(seconds: 2), () {
-          startNewGame();
-        });
-      }
+    }
     
-    print('======= 액션 종료: Player ${playerIndex+1} =======\n');
+    // 모든 플레이어가 폴드 또는 올인 상태인 경우 다음 게임으로 진행
+    if (allInactiveAfterAction && !isPotGuessing) {
+      if (!kReleaseMode) {
+        print('액션 후 모든 플레이어가 폴드 또는 올인 상태입니다. 다음 게임으로 진행합니다.');
+      }
+      Future.delayed(const Duration(seconds: 2), () {
+        startNewGame();
+      });
+    }
+  
+    if (!kReleaseMode) {
+      print('======= 액션 종료: Player ${playerIndex+1} =======\n');
+    }
   }
 
   void startNewGame() {
@@ -529,9 +586,11 @@ class _PotLimitPageState extends State<PotLimitPage> {
       }
     }
     
-    print('--- CHECK POT GUESS ---');
-    print('User guess: \$${userGuess} | Correct: \$${correctPot}');
-    print('Current pot: \$${currentPot} | Last action amount: \$${lastActionAmount}');
+    if (!kReleaseMode) {
+      print('--- CHECK POT GUESS ---');
+      print('User guess: \$${userGuess} | Correct: \$${correctPot}');
+      print('Current pot: \$${currentPot} | Last action amount: \$${lastActionAmount}');
+    }
     
     setState(() {
       if (userGuess == correctPot) {
