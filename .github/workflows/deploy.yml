@@ -39,6 +39,8 @@ jobs:
           mkdir -p gh-pages-deploy
           cp -r build/web/* gh-pages-deploy/
           cd gh-pages-deploy
+          rm -rf linux windows
+          rm -f .flutter-plugins .flutter-plugins-dependencies
           touch .nojekyll
           
       - name: Setup Pages
