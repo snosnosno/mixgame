@@ -19,6 +19,11 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="팟 리밋 계산기 - Pot Limit 연습">
+  
+  <!-- 캐시 제어 헤더 -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
 
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -60,7 +65,7 @@
 
   <script>
     // The value below is injected by flutter build, do not touch.
-    const serviceWorkerVersion = "2571677844";
+    const serviceWorkerVersion = null;
   </script>
   <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
@@ -79,7 +84,7 @@
       }
 
       // 메인 앱 로드
-      _flutter.loader.loadEntrypoint({
+      _flutter.loader.load({
         serviceWorker: {
           serviceWorkerVersion: serviceWorkerVersion,
         },
@@ -95,6 +100,19 @@
         }
       });
     });
+  </script>
+  
+  <!-- 캐시 무효화를 위한 타임스탬프 추가 -->
+  <script>
+    // 타임스탬프를 사용하여 main.dart.js 로드
+    document.write('<script src="main.dart.js?v=' + new Date().getTime() + '"><\/script>');
+  </script>
+  
+  <!-- Flutter 디버그 모드 강제 해제 -->
+  <script>
+    window.flutterConfiguration = {
+      useDebugExtension: false
+    };
   </script>
 </body>
 </html>
