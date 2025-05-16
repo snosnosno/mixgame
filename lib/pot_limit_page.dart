@@ -241,17 +241,25 @@ class _PotLimitPageState extends State<PotLimitPage> {
       // 6. 실제 레이즈 금액 계산 (총액 기준)
       int actualRaiseAmount = selectedBet - maxTableBet;  // 순수 레이즈 금액
       
-      // 7. 최종 타겟 베팅 금액 - 단위 조정 없음
+      // 6.1 레이즈 금액 포맷팅 - 웹 빌드에서 포맷팅이 제대로 적용되지 않는 문제 해결을 위해
+      print('DEBUG_DEPLOY: RAISE 액션 - 포맷 전 actualRaiseAmount: $actualRaiseAmount | SB: $smallBlind');
+      int formattedAmount = formatAmount(actualRaiseAmount);
+      print('DEBUG_DEPLOY: RAISE 액션 - 포맷 후 formattedAmount: $formattedAmount');
+      
+      // 6.2 포맷팅된 금액으로 selectedBet 재계산 - 이것이 중요한 변경
+      selectedBet = maxTableBet + formattedAmount;
+      
+      // 7. 최종 타겟 베팅 금액 - formattedAmount 기반으로 업데이트
       int targetBet = selectedBet;
       
       print('레이즈 계산 상세 -----');
       print('최대 테이블 베팅: $maxTableBet, 콜 금액: $callAmount, 팟 금액: $totalPot');
       print('최소 레이즈 금액: $minRaiseAmount, 최소 레이즈 베팅: $minRaiseBet');
       print('최대 가능 베팅: $maxRaiseBet, 레이즈 범위: $rangeBets');
-      print('선택된 베팅: $selectedBet, 순수 레이즈 금액: $actualRaiseAmount, 타겟 베팅: $targetBet');
+      print('선택된 베팅: $selectedBet, 순수 레이즈 금액: $formattedAmount, 타겟 베팅: $targetBet');
       
-      // 액션을 로그에 기록
-      print('Action: RAISE | Player: ${player.name} | raiseAmount: $actualRaiseAmount');
+      // 액션을 로그에 기록 - 포맷팅된 금액 사용
+      print('Action: RAISE | Player: ${player.name} | raiseAmount: $formattedAmount');  // 수정: actualRaiseAmount를 formattedAmount로 변경
       
       // 이전 베팅 기록 저장
       int prevBet = player.bet;
@@ -265,15 +273,12 @@ class _PotLimitPageState extends State<PotLimitPage> {
       
       print('베팅 처리 후: ${player.name} | 이전 베팅: $prevBet | 최종 베팅: ${player.bet} | 실제 레이즈: ${bettingRound!.lastRaiseAmount}');
       
-      // 2. 액션 정보 저장 - 최종 레이즈 금액 사용
-      actionAmount = bettingRound!.lastRaiseAmount;
+      // 2. 액션 정보 저장 - 포맷팅된 금액 사용
+      actionAmount = formattedAmount;  // 수정: bettingRound!.lastRaiseAmount를 formattedAmount로 변경
       
       // 3. UI 정보 업데이트 (setState는 아직 호출하지 않음)
       playerActionHistory[playerIndex].clear();
-      // RAISE 액션일 때만 단위 조정된 금액을 표시
-      print('DEBUG_DEPLOY: RAISE 액션 - 포맷 전 actualRaiseAmount: $actualRaiseAmount | SB: $smallBlind');
-      int formattedAmount = formatAmount(actualRaiseAmount);
-      print('DEBUG_DEPLOY: RAISE 액션 - 포맷 후 formattedAmount: $formattedAmount');
+      // RAISE 액션일 때만 단위 조정된 금액을 표시 - 계산해둔 formattedAmount 사용
       print('Formatting RAISE amount: $actualRaiseAmount -> $formattedAmount (SB: $smallBlind)');
       playerActionHistory[playerIndex].add('$actionType: $formattedAmount');
       print('Action 처리 완료: $actionType: $formattedAmount');
@@ -396,8 +401,11 @@ class _PotLimitPageState extends State<PotLimitPage> {
       print('DEBUG_DEPLOY: POT! 액션 - 포맷 전 rawPotBet: $rawPotBet | SB: $smallBlind');
       
       // 단위 조정 적용 (formatAmount 함수 사용)
-      int targetBet = formatAmount(rawPotBet);
-      print('DEBUG_DEPLOY: POT! 액션 - 포맷 후 targetBet: $targetBet');
+      int formattedPotBet = formatAmount(rawPotBet);
+      print('DEBUG_DEPLOY: POT! 액션 - 포맷 후 formattedPotBet: $formattedPotBet');
+      
+      // 수정: 포맷팅된 값을 targetBet으로 사용
+      int targetBet = formattedPotBet;
       
       print('------ POT! 계산 상세 ------');
       print('현재 팟: $currentPot | 콜 금액: $callAmount');
@@ -407,7 +415,8 @@ class _PotLimitPageState extends State<PotLimitPage> {
       // 이전 베팅 값 저장
       int prevBet = player.bet;
       
-      print('Action: POT! | Player: ${player.name} | potBet: $targetBet');
+      // 중요: 포맷팅된 값을 로그에 출력
+      print('Action: POT! | Player: ${player.name} | potBet: $formattedPotBet');
       
       // 1. 내부 처리 수행
       print('POT 처리 전: targetBet=$targetBet');
@@ -415,8 +424,8 @@ class _PotLimitPageState extends State<PotLimitPage> {
       print('POT 처리 후: player.bet=${player.bet}, lastRaiseAmount=${bettingRound!.lastRaiseAmount}');
       
       // 2. 실제 처리된 값과 정답 설정
-      potCorrectAnswer = player.bet; // 실제 베팅된 최종 금액
-      actionAmount = bettingRound!.lastRaiseAmount;
+      potCorrectAnswer = targetBet; // 수정: player.bet 값 대신 targetBet을 사용
+      actionAmount = bettingRound!.lastRaiseAmount; // 기존 코드 유지
       
       // 3. UI 정보 업데이트 (setState는 아직 호출하지 않음)
       playerActionHistory[playerIndex].clear();
