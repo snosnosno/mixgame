@@ -469,7 +469,7 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Text(
-          getText('madeBy'),
+          getText('madeBy') + ' | Version 1.0.0',
           textAlign: TextAlign.right,
           style: TextStyle(
             color: Colors.white.withOpacity(0.7),
