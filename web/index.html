@@ -18,7 +18,7 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="팟 리밋 계산기 - Pot Limit 연습">
+  <meta name="description" content="PL OMAHA 연습 - 승자 맞추기 & Pot Limit 계산">
   
   <!-- 캐시 제어 헤더 -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -28,13 +28,13 @@
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="POT 계산 연습">
+  <meta name="apple-mobile-web-app-title" content="PL OMAHA 연습">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>POT 계산 연습</title>
+  <title>PL OMAHA 연습</title>
   <link rel="manifest" href="manifest.json">
 
   <!-- JavaScript 호환성 폴리필 -->
@@ -83,22 +83,36 @@
         });
       }
 
-      // 메인 앱 로드
-      _flutter.loader.load({
-        serviceWorker: {
-          serviceWorkerVersion: serviceWorkerVersion,
-        },
-        onEntrypointLoaded: function(engineInitializer) {
-          engineInitializer.initializeEngine({
-            // 메모리 설정 최적화
-            useColorEmoji: true,
-            // 웹 성능 향상 설정
-            canvasKitMaximumSurfaces: 8
-          }).then(function(appRunner) {
-            appRunner.runApp();
-          });
-        }
-      });
+      // 메인 앱 로드 - 두 가지 방식 모두 지원
+      var loader = window._flutter.loader;
+      if (loader.loadEntrypoint) {
+        // 이전 버전 Flutter 로더
+        loader.loadEntrypoint({
+          serviceWorker: {
+            serviceWorkerVersion: serviceWorkerVersion,
+          },
+          onEntrypointLoaded: function(engineInitializer) {
+            engineInitializer.initializeEngine().then(function(appRunner) {
+              appRunner.runApp();
+            });
+          }
+        });
+      } else {
+        // 최신 버전 Flutter 로더
+        loader.load({
+          serviceWorker: {
+            serviceWorkerVersion: serviceWorkerVersion,
+          },
+          onEntrypointLoaded: function(engineInitializer) {
+            engineInitializer.initializeEngine({
+              useColorEmoji: true,
+              canvasKitMaximumSurfaces: 8
+            }).then(function(appRunner) {
+              appRunner.runApp();
+            });
+          }
+        });
+      }
     });
   </script>
   
@@ -113,6 +127,19 @@
     window.flutterConfiguration = {
       useDebugExtension: false
     };
+  </script>
+
+  <!-- 버전 정보 표시 -->
+  <div id="version-info" style="position: fixed; bottom: 5px; left: 5px; font-size: 10px; color: #666; z-index: 9999;">
+    v<span id="version-number">1.0.0</span>
+  </div>
+  <script>
+    // 서비스 워커 버전을 사용하여 버전 정보 표시
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        document.getElementById('version-number').textContent = serviceWorkerVersion || '1.0.0';
+      }, 2000);
+    });
   </script>
 </body>
 </html>
