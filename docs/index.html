@@ -66,58 +66,35 @@
   <script src="flutter.js" defer></script>
 </head>
 <body>
-    <script>
-      window.addEventListener('load', function(ev) {
-        // 캐시 강제 갱신을 위한 설정
-        window.applicationCacheEnabled = false;
+  <script>
+    window.addEventListener('load', function(ev) {
+      // 캐시 강제 갱신을 위한 설정
+      window.applicationCacheEnabled = false;
 
-        // 브라우저 캐시 클리어 시도
-        if ('caches' in window) {
-          caches.keys().then(function(names) {
-            for (let name of names) caches.delete(name);
+      // 브라우저 캐시 클리어 시도
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          for (let name of names) caches.delete(name);
+        });
+      }
+
+      // 메인 앱 로드
+      _flutter.loader.loadEntrypoint({
+        serviceWorker: {
+          serviceWorkerVersion: serviceWorkerVersion,
+        },
+        onEntrypointLoaded: function(engineInitializer) {
+          engineInitializer.initializeEngine({
+            // 메모리 설정 최적화
+            useColorEmoji: true,
+            // 웹 성능 향상 설정
+            canvasKitMaximumSurfaces: 8
+          }).then(function(appRunner) {
+            appRunner.runApp();
           });
         }
-
-        // Flutter 웹 초기화
-        const flutterJS = document.querySelector('script[src="flutter.js"]');
-        if (!flutterJS) {
-          const script = document.createElement('script');
-          script.src = 'flutter.js';
-          script.type = 'application/javascript';
-          document.body.appendChild(script);
-        }
-
-        // 메인 앱 로드
-        window.flutterConfiguration = {
-          canvasKitBaseUrl: "/mixgame/canvaskit/",
-          serviceWorker: {
-            serviceWorkerVersion: serviceWorkerVersion,
-          }
-        };
-        
-        window.addEventListener('flutter-first-frame', function() {
-          console.log('Flutter 앱이 성공적으로 로드되었습니다.');
-        });
-        
-        // Flutter 로더 초기화
-        window.onload = function() {
-          flutter_web_main = function() {
-            window.flutter_inappwebview = {};
-            window.flutter.loader.load({
-              // 메모리 설정 최적화
-              useColorEmoji: true,
-              // 웹 성능 향상 설정
-              canvasKitMaximumSurfaces: 8
-            });
-          };
-          
-          if (window.flutter) {
-            flutter_web_main();
-          } else {
-            window.addEventListener('flutter-initialized', flutter_web_main);
-          }
-        };
       });
-    </script>
+    });
+  </script>
 </body>
 </html>
