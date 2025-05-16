@@ -127,12 +127,13 @@ class BettingRound {
 
   int calculatePotLimit() {
     // 현재 팟 크기 계산 (현재 플레이어를 제외한 다른 플레이어들의 베팅 합)
-    int potSize = players.where((p) => p != currentPlayer).fold(0, (sum, p) => sum + p.bet);
+    int potSize = players.fold(0, (sum, p) => sum + p.bet);
     
-    // 현재 베팅 금액을 콜 금액으로 사용 (마지막 레이즈 금액 아님)
-    int callAmount = currentBet;
+    // 콜 금액 = 현재 베팅 금액 - 현재 플레이어의 베팅
+    int callAmount = currentBet - currentPlayer.bet;
+    if (callAmount < 0) callAmount = 0; // 음수가 되지 않도록 방지
     
-    // 팟 리밋 계산: 현재 팟 + (현재 베팅 * 2)
+    // 팟 리밋 계산: 현재 팟 + (콜 금액 * 2)
     int potLimit = potSize + (callAmount * 2);
     
     // 최대 가능 베팅액 (플레이어의 칩 + 이미 베팅한 금액)

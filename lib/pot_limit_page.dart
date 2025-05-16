@@ -420,9 +420,8 @@ class _PotLimitPageState extends State<PotLimitPage> {
       int currentPot = players.fold(0, (sum, p) => sum + p.bet);
       int totalPlayerChips = player.chips + player.bet;
       
-      // 실제 POT 사이즈 계산: 현재 팟 + 콜 금액 (2배)
-      int potSize = currentPot + callAmount;
-      int potBet = potSize + callAmount; // POT 베팅 = 현재 팟 + 콜 금액*2
+      // 수정된 POT 계산식: 현재 팟 + (콜 금액 × 2)
+      int potBet = currentPot + (callAmount * 2);
       
       // 최종 POT 베팅 금액은 플레이어 칩 수량과 팟 베팅 중 작은 값
       int rawPotBet = min(potBet, totalPlayerChips);
