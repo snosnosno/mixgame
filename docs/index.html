@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <!-- 강제 캐시 무효화 메타 태그 -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  
   <!--
     If you are serving your web app in a path other than the root, change the
     href value below to reflect the base path you are serving from.
@@ -24,16 +29,16 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="POT 계산 연습">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png?v=20230516">
 
   <!-- Android meta tags -->
   <meta name="mobile-web-app-capable" content="yes">
   
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="favicon.png?v=20230516"/>
 
   <title>POT 계산 연습</title>
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="manifest.json?v=20230516">
 
   <!-- 소스맵 오류 억제 -->
   <script>
@@ -50,6 +55,9 @@
 
   <!-- JavaScript 호환성 폴리필 -->
   <script>
+    // 버전 정보 추가 (캐시 무효화용)
+    window.APP_VERSION = '20230516.1';
+    
     // 디버깅 소스맵 관련 오류 방지
     window.preventSourceMapsErrorLogging = true;
     
@@ -98,7 +106,7 @@
     const serviceWorkerVersion = null;
   </script>
   <!-- This script adds the flutter initialization JS code -->
-  <script src="flutter.js" defer></script>
+  <script src="flutter.js?v=20230516" defer></script>
 </head>
 <body>
   <script>
@@ -119,56 +127,96 @@
     })();
 
     window.addEventListener('load', function(ev) {
-      // 디버깅 오류 처리
-      window.addEventListener('error', function(event) {
-        // 소스 맵 오류 무시
-        if (event.filename && event.filename.includes('.map')) {
-          event.preventDefault();
-          return false;
+      // 캐시 강제 갱신
+      function forceRefresh() {
+        // 로컬 스토리지에 버전 비교
+        var savedVersion = localStorage.getItem('app_version');
+        if (savedVersion !== window.APP_VERSION) {
+          console.log('New version detected: ' + window.APP_VERSION + ' (old: ' + savedVersion + ')');
+          localStorage.setItem('app_version', window.APP_VERSION);
+          
+          // 강제 새로고침 - 캐시 무효화를 위해 타임스탬프 추가
+          if (savedVersion) { // 첫 방문이 아닌 경우에만 새로고침
+            window.location.reload(true);
+            return true;
+          }
         }
-      });
+        return false;
+      }
       
-      // 폼 필드 요소 속성 자동 수정 - id나 name 속성이 없는 경우 추가
-      function fixFormElements() {
-        const inputs = document.querySelectorAll('input, textarea, select');
-        inputs.forEach(function(input, index) {
-          if (!input.id && !input.name) {
-            input.id = 'flutter-input-' + index;
+      // 버전 확인 및 갱신
+      if (!forceRefresh()) {
+        // 디버깅 오류 처리
+        window.addEventListener('error', function(event) {
+          // 소스 맵 오류 무시
+          if (event.filename && event.filename.includes('.map')) {
+            event.preventDefault();
+            return false;
+          }
+        });
+        
+        // 폼 필드 요소 속성 자동 수정 - id나 name 속성이 없는 경우 추가
+        function fixFormElements() {
+          const inputs = document.querySelectorAll('input, textarea, select');
+          inputs.forEach(function(input, index) {
+            if (!input.id && !input.name) {
+              input.id = 'flutter-input-' + index;
+            }
+          });
+        }
+        
+        // DOM 변화 감지하여 폼 요소 수정
+        const observer = new MutationObserver(function(mutations) {
+          fixFormElements();
+        });
+        
+        // 문서 본문 관찰 시작
+        setTimeout(function() {
+          observer.observe(document.body, { 
+            childList: true, 
+            subtree: true 
+          });
+          // 초기 실행
+          fixFormElements();
+        }, 1000);
+        
+        // 캐시 강제 갱신을 위한 설정
+        window.applicationCacheEnabled = false;
+  
+        // 브라우저 캐시 클리어 시도
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            for (let name of names) caches.delete(name);
+          });
+        }
+  
+        // 메인 앱 로드 (최신 방식 사용)
+        _flutter.loader.load({
+          serviceWorker: {
+            serviceWorkerVersion: serviceWorkerVersion,
+          },
+          // 모든 에셋에 타임스탬프 추가
+          onEntrypointLoaded: function(engineInitializer) {
+            // 에셋 로드 시 캐시 무효화 쿼리 추가
+            var timeStamp = new Date().getTime();
+            var assetBase = '/mixgame/assets';
+            var originalAssetResolver = window._flutter.loader.assetResolver;
+            if (originalAssetResolver) {
+              window._flutter.loader.assetResolver = function(asset) {
+                var url = originalAssetResolver(asset);
+                if (url && url.startsWith(assetBase)) {
+                  return url + '?t=' + timeStamp;
+                }
+                return url;
+              };
+            }
+            
+            engineInitializer.initializeEngine().then(function(appRunner) {
+              appRunner.runApp();
+            });
           }
         });
       }
-      
-      // DOM 변화 감지하여 폼 요소 수정
-      const observer = new MutationObserver(function(mutations) {
-        fixFormElements();
-      });
-      
-      // 문서 본문 관찰 시작
-      setTimeout(function() {
-        observer.observe(document.body, { 
-          childList: true, 
-          subtree: true 
-        });
-        // 초기 실행
-        fixFormElements();
-      }, 1000);
-      
-      // 캐시 강제 갱신을 위한 설정
-      window.applicationCacheEnabled = false;
-
-      // 브라우저 캐시 클리어 시도
-      if ('caches' in window) {
-        caches.keys().then(function(names) {
-          for (let name of names) caches.delete(name);
-        });
-      }
-
-      // 메인 앱 로드 (최신 방식 사용)
-      _flutter.loader.load({
-        serviceWorker: {
-          serviceWorkerVersion: serviceWorkerVersion,
-        }
-      });
     });
   </script>
 </body>

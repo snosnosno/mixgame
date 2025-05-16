@@ -385,12 +385,12 @@ class _PotLimitPageState extends State<PotLimitPage> {
       // 최종 POT 베팅 금액은 플레이어 칩 수량과 팟 베팅 중 작은 값
       potBet = min(potBet, totalPlayerChips);
       
-      // 단위 조정없이 그대로 사용
-      int targetBet = potBet;
+      // 단위 조정 적용 (formatAmount 함수 사용)
+      int targetBet = formatAmount(potBet);
       
       print('------ POT! 계산 상세 ------');
       print('현재 팟: $currentPot | 콜 금액: $callAmount');
-      print('플레이어 총 칩: $totalPlayerChips | 일반 팟 베팅: $potBet');
+      print('플레이어 총 칩: $totalPlayerChips | 팟 리밋: $potBet');
       print('최종 POT 베팅: $targetBet');
       
       // 이전 베팅 값 저장
