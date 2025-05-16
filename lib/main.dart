@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'home_page.dart';
 import 'dart:ui' as ui;
 
+// 앱 버전 정의
+const String APP_VERSION = "1.0.0";
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // 웹에서 로그 출력 최소화
+  if (kIsWeb) {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  }
   
   // Initialize language based on device locale
   final deviceLocale = ui.window.locale.languageCode;

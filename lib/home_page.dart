@@ -4,6 +4,7 @@ import 'pages/pot_limit_page.dart';
 import 'pages/pot_limit_calculator_page.dart';
 import 'pages/hi_low_game_page.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'main.dart'; // APP_VERSION 상수 사용을 위해 추가
 
 // 앱 전체에서 공유할 언어 설정
 class AppLanguage {
@@ -469,7 +470,7 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Text(
-          getText('madeBy') + ' | Version 1.0.0',
+          getText('madeBy') + ' | Version ' + APP_VERSION,
           textAlign: TextAlign.right,
           style: TextStyle(
             color: Colors.white.withOpacity(0.7),
