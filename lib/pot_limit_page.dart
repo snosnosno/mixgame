@@ -70,17 +70,24 @@ class _PotLimitPageState extends State<PotLimitPage> {
     int sb = smallBlind;
     int step;
     
+    print('DEBUG_DEPLOY: 원본 금액: $amount | SB: $sb | formatAmount 시작');
+    
     if (sb >= 1500 && sb < 4000) {  // 3000에서 4000미만으로 조건 변경
       step = 500;
+      print('DEBUG_DEPLOY: 500단위 반올림 적용');
     } else if (sb >= 4000) {
       step = 1000;
+      print('DEBUG_DEPLOY: 1000단위 반올림 적용');
     } else {
       // 다른 경우에는 조정하지 않음
+      print('DEBUG_DEPLOY: 단위 조정 없음 (SB < 1500)');
       return amount;
     }
     
     // 500단위 또는 1000단위로 정확히 올림 처리
-    return (amount / step).ceil() * step;
+    int result = (amount / step).ceil() * step;
+    print('DEBUG_DEPLOY: 최종 결과: $result (계산식: (${amount}/${step}).ceil() * ${step})');
+    return result;
   }
 
   String formatAmountString(int amount) {
@@ -264,7 +271,9 @@ class _PotLimitPageState extends State<PotLimitPage> {
       // 3. UI 정보 업데이트 (setState는 아직 호출하지 않음)
       playerActionHistory[playerIndex].clear();
       // RAISE 액션일 때만 단위 조정된 금액을 표시
+      print('DEBUG_DEPLOY: RAISE 액션 - 포맷 전 actualRaiseAmount: $actualRaiseAmount | SB: $smallBlind');
       int formattedAmount = formatAmount(actualRaiseAmount);
+      print('DEBUG_DEPLOY: RAISE 액션 - 포맷 후 formattedAmount: $formattedAmount');
       print('Formatting RAISE amount: $actualRaiseAmount -> $formattedAmount (SB: $smallBlind)');
       playerActionHistory[playerIndex].add('$actionType: $formattedAmount');
       print('Action 처리 완료: $actionType: $formattedAmount');
@@ -383,14 +392,16 @@ class _PotLimitPageState extends State<PotLimitPage> {
       int potBet = potSize + callAmount; // POT 베팅 = 현재 팟 + 콜 금액*2
       
       // 최종 POT 베팅 금액은 플레이어 칩 수량과 팟 베팅 중 작은 값
-      potBet = min(potBet, totalPlayerChips);
+      int rawPotBet = min(potBet, totalPlayerChips);
+      print('DEBUG_DEPLOY: POT! 액션 - 포맷 전 rawPotBet: $rawPotBet | SB: $smallBlind');
       
       // 단위 조정 적용 (formatAmount 함수 사용)
-      int targetBet = formatAmount(potBet);
+      int targetBet = formatAmount(rawPotBet);
+      print('DEBUG_DEPLOY: POT! 액션 - 포맷 후 targetBet: $targetBet');
       
       print('------ POT! 계산 상세 ------');
       print('현재 팟: $currentPot | 콜 금액: $callAmount');
-      print('플레이어 총 칩: $totalPlayerChips | 팟 리밋: $potBet');
+      print('플레이어 총 칩: $totalPlayerChips | 팟 리밋: $rawPotBet');
       print('최종 POT 베팅: $targetBet');
       
       // 이전 베팅 값 저장
