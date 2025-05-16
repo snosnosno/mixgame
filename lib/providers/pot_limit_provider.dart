@@ -648,7 +648,8 @@ $correctAnswerText
     // POT 액션 정보 저장
     potCorrectAnswer = potBet;
     potLastCurrentPot = formattedCurrentPot;
-    potLastCallAmount = formattedCallAmount;
+    // 콜 금액은 항상 베팅 단위인 400으로 설정 (수정된 부분)
+    potLastCallAmount = 400;
     potLastLimit = formattedPotLimit;
     
     debugPrint('------ POT! 계산 상세 ------');
