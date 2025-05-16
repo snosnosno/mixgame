@@ -35,6 +35,19 @@
   <title>POT 계산 연습</title>
   <link rel="manifest" href="manifest.json">
 
+  <!-- 소스맵 오류 억제 -->
+  <script>
+    // 소스맵 관련 오류 억제를 위한 전역 처리
+    window.addEventListener('error', function(e) {
+      if (e.filename && (e.filename.includes('.map') || e.message && e.message.includes('source map'))) {
+        console.log('Suppressed source map error');
+        e.stopPropagation();
+        e.preventDefault();
+        return false;
+      }
+    }, true);
+  </script>
+
   <!-- JavaScript 호환성 폴리필 -->
   <script>
     // 디버깅 소스맵 관련 오류 방지
@@ -89,6 +102,22 @@
 </head>
 <body>
   <script>
+    // 소스맵 오류 방지를 위한 페치 후킹
+    (function() {
+      const originalFetch = window.fetch;
+      window.fetch = function(url, options) {
+        if (typeof url === 'string' && url.includes('.map')) {
+          console.log('Intercepted fetch for source map: ' + url);
+          return Promise.resolve(new Response('', {
+            status: 200,
+            statusText: 'OK',
+            headers: new Headers({'Content-Type': 'application/json'})
+          }));
+        }
+        return originalFetch.apply(this, arguments);
+      };
+    })();
+
     window.addEventListener('load', function(ev) {
       // 디버깅 오류 처리
       window.addEventListener('error', function(event) {

@@ -220,8 +220,8 @@ class PotLimitProvider extends ChangeNotifier {
       numberOfPlayers,
       (index) => Player(
         name: 'Player ${index + 1}',
-        // 최소 칩을 smallBlind의 20배 이상으로 설정하여 음수가 되지 않도록 함
-        chips: max((random.nextInt(599) * 500) + 500, smallBlind * 20),
+        // 최소 칩을 smallBlind의 5배 이상으로 설정하여 음수가 되지 않도록 함
+        chips: max((random.nextInt(599) * 500) + 500, smallBlind * 5),
         hand: [],
         position: Position.values[index % Position.values.length],
       ),
