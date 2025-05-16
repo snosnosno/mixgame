@@ -14,6 +14,14 @@ class AppLanguage {
     isKorean = korean;
   }
   
+  // getText 메서드 추가
+  static String getText(String key) {
+    // 'language' 키는 항상 영어로 반환
+    if (key == 'language') return 'Language';
+    final Map<String, String> texts = isKorean ? ko : en;
+    return texts[key] ?? key;
+  }
+  
   // 한국어 텍스트
   static const Map<String, String> ko = {
     'appTitle': 'PL OMAHA 연습',
@@ -202,14 +210,6 @@ class AppLanguage {
     'appPurpose': 'This app is a training tool for real Omaha poker dealers and players. It helps improve quick hand evaluation and accurate pot calculation skills to enhance your dealing abilities in real games.',
     'potLimitCalculatorDescription': 'A simple calculator to quickly calculate pot limit amounts. Just enter the current pot and call amount to instantly get the maximum possible bet.',
   };
-  
-  // 현재 언어에 맞는 텍스트 가져오기
-  static String getText(String key) {
-    // 'language' 키는 항상 영어로 반환
-    if (key == 'language') return 'Language';
-    final Map<String, String> texts = isKorean ? ko : en;
-    return texts[key] ?? key;
-  }
 }
 
 class HomePage extends StatefulWidget {
