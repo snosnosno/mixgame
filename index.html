@@ -19,6 +19,11 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="PL OMAHA 연습 - 승자 맞추기 & Pot Limit 계산">
+  
+  <!-- 캐시 제어 헤더 -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
 
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -32,9 +37,35 @@
   <title>PL OMAHA 연습</title>
   <link rel="manifest" href="manifest.json">
 
+  <!-- JavaScript 호환성 폴리필 -->
+  <script>
+    // JavaScript 정수 나눗셈 폴리필
+    Math.trunc = Math.trunc || function(x) {
+      return x < 0 ? Math.ceil(x) : Math.floor(x);
+    };
+
+    // Dart의 ~/ 연산자를 JavaScript에서 올바르게 처리
+    window.dartIntegerDivision = function(a, b) {
+      return Math.floor(a / b);
+    };
+
+    // 모듈로 연산 정확히 구현
+    window.dartModulo = function(a, b) {
+      return ((a % b) + b) % b;
+    };
+
+    // 넘버링 연산 조정
+    Number.prototype.dartRoundUp = function(step) {
+      var value = this.valueOf();
+      var remainder = value % step;
+      if (remainder === 0) return value;
+      return value + (step - remainder);
+    };
+  </script>
+
   <script>
     // The value below is injected by flutter build, do not touch.
-    const serviceWorkerVersion = "2571677844";
+    const serviceWorkerVersion = ""1935520628"";
   </script>
   <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
@@ -42,17 +73,72 @@
 <body>
   <script>
     window.addEventListener('load', function(ev) {
-      // Download main.dart.js
-      _flutter.loader.loadEntrypoint({
-        serviceWorker: {
-          serviceWorkerVersion: serviceWorkerVersion,
-        },
-        onEntrypointLoaded: function(engineInitializer) {
-          engineInitializer.initializeEngine().then(function(appRunner) {
-            appRunner.runApp();
-          });
-        }
-      });
+      // 캐시 강제 갱신을 위한 설정
+      window.applicationCacheEnabled = false;
+
+      // 브라우저 캐시 클리어 시도
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          for (let name of names) caches.delete(name);
+        });
+      }
+
+      // 메인 앱 로드 - 두 가지 방식 모두 지원
+      var loader = window._flutter.loader;
+      if (loader.loadEntrypoint) {
+        // 이전 버전 Flutter 로더
+        loader.loadEntrypoint({
+          serviceWorker: {
+            serviceWorkerVersion: serviceWorkerVersion,
+          },
+          onEntrypointLoaded: function(engineInitializer) {
+            engineInitializer.initializeEngine().then(function(appRunner) {
+              appRunner.runApp();
+            });
+          }
+        });
+      } else {
+        // 최신 버전 Flutter 로더
+        loader.load({
+          serviceWorker: {
+            serviceWorkerVersion: serviceWorkerVersion,
+          },
+          onEntrypointLoaded: function(engineInitializer) {
+            engineInitializer.initializeEngine({
+              useColorEmoji: true,
+              canvasKitMaximumSurfaces: 8
+            }).then(function(appRunner) {
+              appRunner.runApp();
+            });
+          }
+        });
+      }
+    });
+  </script>
+  
+  <!-- 캐시 무효화를 위한 타임스탬프 추가 -->
+  <script>
+    // 타임스탬프를 사용하여 main.dart.js 로드
+    document.write('<script src="main.dart.js?v=' + new Date().getTime() + '"><\/script>');
+  </script>
+  
+  <!-- Flutter 디버그 모드 강제 해제 -->
+  <script>
+    window.flutterConfiguration = {
+      useDebugExtension: false
+    };
+  </script>
+
+  <!-- 버전 정보 표시 -->
+  <div id="version-info" style="position: fixed; bottom: 5px; left: 5px; font-size: 10px; color: #666; z-index: 9999;">
+    v<span id="version-number">1.0.0</span>
+  </div>
+  <script>
+    // 서비스 워커 버전을 사용하여 버전 정보 표시
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        document.getElementById('version-number').textContent = serviceWorkerVersion || '1.0.0';
+      }, 2000);
     });
   </script>
 </body>
