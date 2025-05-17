@@ -6,7 +6,7 @@ import 'home_page.dart';
 import 'dart:ui' as ui;
 
 // 앱 버전 정의
-const String APP_VERSION = "1.0.0";
+const String APP_VERSION = '1.0.3';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

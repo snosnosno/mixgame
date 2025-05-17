@@ -279,8 +279,12 @@ class PotLimitProvider extends ChangeNotifier {
       
       // 현재 팟 = 모든 플레이어의 베팅 합계에서 현재 플레이어의 베팅을 뺀 값
       int rawCurrentPot = players.where((p) => p != currentPlayer).fold(0, (sum, p) => sum + p.bet);
-      // 콜 금액 계산
-      int rawCallAmount = bettingRound!.currentBet - (currentPlayerIndex < players.length ? currentPlayer.bet : 0);
+      
+      // 현재 베팅 상태에서 가장 큰 베팅 찾기
+      int maxBet = players.fold(0, (max, p) => p.bet > max ? p.bet : max);
+      
+      // 콜 금액 = 최대 베팅액 (팟 리밋 계산용)
+      int rawCallAmount = maxBet;
       
       // 형식화된 값으로 변환
       String currentPotStr = formatAmount(rawCurrentPot);
@@ -579,15 +583,22 @@ $correctAnswerText
   
   /// 콜 액션 실행
   bool _performCallAction(Player player, int playerIndex) {
-    int callAmount = bettingRound!.currentBet;
+    // 현재 베팅 상태에서 가장 큰 베팅 찾기
+    int maxBet = players.fold(0, (max, p) => p.bet > max ? p.bet : max);
     
-    if (callAmount > player.chips) {
+    // 콜 금액 = 최대 베팅액 (팟 리밋 계산용)
+    int callAmount = maxBet;
+    
+    // 플레이어가 추가로 내야 하는 금액 (실제 베팅에 사용)
+    int playerCallDifference = max(0, maxBet - player.bet);
+    
+    if (playerCallDifference > player.chips) {
       // 칩이 부족하면 올인
-      debugPrint('Action: ALL-IN (콜 금액 부족) | Player: ${player.name} | 보유 칩: \$${player.chips} | 콜 금액: \$${callAmount}');
+      debugPrint('Action: ALL-IN (콜 금액 부족) | Player: ${player.name} | 보유 칩: \$${player.chips} | 콜 금액: \$${callAmount} | 실제 추가 베팅: \$${playerCallDifference}');
       bettingRound!.performAction('allIn');
       playerActionHistory[playerIndex].add('ALL-IN: ${formatAmount(player.bet)}');
     } else {
-      debugPrint('Action: CALL | Player: ${player.name} | callAmount: \$${callAmount}');
+      debugPrint('Action: CALL | Player: ${player.name} | callAmount: \$${callAmount} | 실제 추가 베팅: \$${playerCallDifference}');
       bettingRound!.performAction('call');
       
       // 포지션이 BB 또는 SB인 경우 이미 블라인드를 냈으므로 총액 표시
@@ -610,13 +621,16 @@ $correctAnswerText
       debugPrint('음수 칩스 감지. Player ${player.name}의 칩을 0으로 조정');
     }
     
-    // 콜 금액 계산 - 음수 방지
-    int callAmount = 0;
-    if (bettingRound!.currentBet > player.bet) {
-      callAmount = bettingRound!.currentBet - player.bet;
-    }
+    // 현재 베팅 상태에서 가장 큰 베팅 찾기
+    int maxBet = players.fold(0, (max, p) => p.bet > max ? p.bet : max);
     
-    // 현재 팟 계산 - fold 메소드 대신 명시적 루프 사용
+    // 콜 금액 = 최대 베팅액 (팟 리밋 계산용)
+    int callAmount = maxBet;
+    
+    // 플레이어가 추가로 내야하는 금액 (실제 베팅에 사용)
+    int playerCallDifference = max(0, maxBet - player.bet);
+    
+    // 현재 팟 계산 - 현재 플레이어의 베팅을 제외한 모든 베팅 합계
     int currentPot = 0;
     for (Player p in players) {
       if (p != player) {
@@ -648,8 +662,7 @@ $correctAnswerText
     // POT 액션 정보 저장
     potCorrectAnswer = potBet;
     potLastCurrentPot = formattedCurrentPot;
-    // 콜 금액은 항상 베팅 단위인 400으로 설정 (수정된 부분)
-    potLastCallAmount = 400;
+    potLastCallAmount = formattedCallAmount;
     potLastLimit = formattedPotLimit;
     
     debugPrint('------ POT! 계산 상세 ------');

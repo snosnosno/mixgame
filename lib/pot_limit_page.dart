@@ -362,7 +362,8 @@ class _PotLimitPageState extends State<PotLimitPage> {
           print('콜 처리 후: player.bet=${player.bet}, 차이=${player.bet - prevBet}');
           
           // 2. 액션 정보 저장
-          actionAmount = player.bet - prevBet;
+          // 콜 액션일 때는 최종 베팅액으로 표시
+          actionAmount = maxTableBet;
           
           // 3. UI 정보 업데이트 (setState는 아직 호출하지 않음)
           if (player.position != Position.bigBlind && player.position != Position.smallBlind) {
@@ -371,7 +372,7 @@ class _PotLimitPageState extends State<PotLimitPage> {
           playerActionHistory[playerIndex].add('$actionType: $actionAmount');
           print('Action 처리 완료: $actionType: $actionAmount');
           updateNeeded = true;
-      }
+        }
       } else {
         // 체크 케이스
         actionType = 'CHECK';
@@ -413,14 +414,48 @@ class _PotLimitPageState extends State<PotLimitPage> {
         }
       }
       
-      // 콜 금액은 최고 베팅과의 차이로 계산
-      int callAmount = maxTableBet - player.bet;
+      // 콜 금액은 실제 레이즈 금액을 반영해야 함
+      // v1.0.1 업데이트: 테이블의 모든 플레이어를 검사하여 최대 베팅액 찾기
+      int maxBet = 0;
+      for (var p in players) {
+        if (!p.isFolded && p.bet > maxBet) {
+          maxBet = p.bet;
+        }
+      }
+      // 모든 레이즈 액션 중 가장 큰 레이즈 금액 찾기
+      int maxRaise = 0;
+      for (int i = 0; i < playerActionHistory.length; i++) {
+        if (playerActionHistory[i].isNotEmpty) {
+          for (String action in playerActionHistory[i]) {
+            if (action.contains('RAISE:')) {
+              try {
+                int raiseAmount = int.parse(action.split(':')[1].trim());
+                if (raiseAmount > maxRaise) {
+                  maxRaise = raiseAmount;
+                  if (!kReleaseMode) {
+                    print('더 큰 레이즈 발견: $raiseAmount | 플레이어: ${i+1}');
+                  }
+                }
+              } catch (e) {
+                if (!kReleaseMode) {
+                  print('레이즈 파싱 오류: $action');
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      // v1.0.2 수정: 콜 금액은 가장 큰 레이즈 금액으로 설정
+      // 이전 레이즈나 올인 중 가장 큰 금액 사용
+      int callAmount = maxRaise > 0 ? maxRaise : maxBet;
       
       // 현재 팟 크기 계산
       int currentPot = players.fold(0, (sum, p) => sum + p.bet);
       int totalPlayerChips = player.chips + player.bet;
       
-      // 수정된 POT 계산식: 현재 팟 + (콜 금액 × 2)
+      // POT 계산식 수정: 현재 팟 + (콜 금액 × 2)
+      // 콜 금액은 절대값(maxTableBet)으로 사용
       int potBet = currentPot + (callAmount * 2);
       
       // 최종 POT 베팅 금액은 플레이어 칩 수량과 팟 베팅 중 작은 값
@@ -472,16 +507,27 @@ class _PotLimitPageState extends State<PotLimitPage> {
       
       if (!kReleaseMode) {
         print('POT 처리 후: player.bet=${player.bet}, lastRaiseAmount=${bettingRound!.lastRaiseAmount}');
-        
-        // 실제 최종 베팅금액 확인 - 실제 베팅된 값을 기준으로 UI 표시
-        int finalBet = player.bet;
-        int finalRaiseAmount = finalBet - prevBet;
-        
-        print('Action 처리 완료: $actionType: $actionAmount | 최종 베팅: $finalBet');
+        print('Action 처리 완료: $actionType | 최종 베팅: ${player.bet}');
       }
       
-      // UI에 표시할 정보 설정 (실제 베팅 기준)
-      potCorrectAnswer = finalBet;  // 실제 베팅된 최종 금액
+      // UI에 표시할 정보 설정 및 로그 추가
+      int finalBet = player.bet;
+      int finalRaiseAmount = finalBet - prevBet;
+      
+      // 실제 POT 계산식 로그 출력
+      if (!kReleaseMode) {
+        print('POT 계산식 - 현재 팟: $currentPot + (콜 금액: $callAmount × 2) = ${currentPot + (callAmount * 2)}');
+        print('최종 베팅: $finalBet');
+      }
+      
+      // POT 계산 결과 설정 - 중요! 
+      // v1.0.1 수정: 마지막 레이즈 금액 또는 테이블 최대 베팅액을 사용하여 정확히 계산
+      potCorrectAnswer = currentPot + (callAmount * 2);  // POT 계산식 결과값으로 설정
+      
+      // 레이즈 금액 기록을 위한 디버그 로그
+      if (!kReleaseMode) {
+        print('최종 POT 계산: $currentPot + ($callAmount * 2) = $potCorrectAnswer');
+      }
       actionAmount = finalRaiseAmount;  // 실제 증가된 베팅 금액 (화면에 표시할 금액)
       
       // UI 정보 업데이트
@@ -573,17 +619,16 @@ class _PotLimitPageState extends State<PotLimitPage> {
       }
     }
     
-    // 마지막 콜/레이즈 금액 계산
+    // 마지막 콜/레이즈 금액 - 테이블의 최대 베팅액으로 설정
     int lastActionAmount = 0;
-    for (int i = 0; i < players.length; i++) {
-      if (playerActionHistory[i].isNotEmpty) {
-        String lastAction = playerActionHistory[i].last;
-        if (lastAction.contains('RAISE:')) {
-          lastActionAmount = int.tryParse(lastAction.split(':')[1].trim()) ?? 0;
-          break;
-        }
+    // 현재 테이블의 최대 베팅액 찾기
+    int maxTableBet = 0;
+    for (var p in players) {
+      if (!p.isFolded && p.bet > maxTableBet) {
+        maxTableBet = p.bet;
       }
     }
+    lastActionAmount = maxTableBet;
     
     if (!kReleaseMode) {
       print('--- CHECK POT GUESS ---');
