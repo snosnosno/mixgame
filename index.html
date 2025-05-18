@@ -130,15 +130,30 @@
   </script>
 
   <!-- 버전 정보 표시 -->
-  <div id="version-info" style="position: fixed; bottom: 5px; left: 5px; font-size: 10px; color: #666; z-index: 9999;">
+  <div id="version-info" style="position: fixed; bottom: 5px; left: 5px; font-size: 12px; color: #333; z-index: 9999; background-color: rgba(255,255,255,0.7); padding: 2px 5px; border-radius: 3px;">
     v<span id="version-number">1.0.0</span>
   </div>
   <script>
-    // 서비스 워커 버전을 사용하여 버전 정보 표시
-    window.addEventListener('load', function() {
-      setTimeout(function() {
-        document.getElementById('version-number').textContent = serviceWorkerVersion || '1.0.0';
-      }, 2000);
+    // 서비스 워커 버전을 사용하여 버전 정보 표시 - 더 확실한 방법으로 구현
+    document.addEventListener('DOMContentLoaded', function() {
+      // 즉시 시도
+      updateVersionNumber();
+      
+      // 1초 후 다시 시도
+      setTimeout(updateVersionNumber, 1000);
+      
+      // 3초 후 또 다시 시도
+      setTimeout(updateVersionNumber, 3000);
+      
+      function updateVersionNumber() {
+        try {
+          console.log("Updating version display: " + (window.serviceWorkerVersion || serviceWorkerVersion || "1.0.0"));
+          document.getElementById('version-number').textContent = 
+            window.serviceWorkerVersion || serviceWorkerVersion || "1.0.0";
+        } catch (e) {
+          console.error("Version update error:", e);
+        }
+      }
     });
   </script>
 </body>

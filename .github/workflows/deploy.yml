@@ -34,6 +34,20 @@ jobs:
       - name: Build web
         run: flutter build web --base-href=/mixgame/ --release
         
+      - name: Update version information and cache busters
+        run: |
+          # 현재 타임스탬프를 가져와서 버전으로 사용
+          VERSION=$(date +%Y%m%d%H%M%S)
+          echo "Using version: $VERSION"
+          
+          # index.html 파일의 서비스 워커 버전 업데이트
+          sed -i 's/const serviceWorkerVersion = ""\([0-9]*\)""/const serviceWorkerVersion = ""'$VERSION'""/' build/web/index.html
+          
+          # 메타 태그 추가하여 캐시 무효화
+          sed -i 's/<meta charset="UTF-8">/<meta charset="UTF-8">\n  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">\n  <meta http-equiv="Pragma" content="no-cache">\n  <meta http-equiv="Expires" content="0">/' build/web/index.html
+          
+          echo "Updated version in files to $VERSION"
+          
       - name: Create clean directory for deployment
         run: |
           mkdir -p gh-pages-deploy
