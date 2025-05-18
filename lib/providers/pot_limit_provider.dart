@@ -52,7 +52,8 @@ class PotLimitProvider extends ChangeNotifier {
 
   PotLimitProvider() {
     playerActionHistory = List.generate(6, (_) => []);
-    _initAudio();
+    // 오디오 초기화 비활성화
+    // _initAudio();
   }
 
   /// 오디오 초기화
@@ -60,8 +61,8 @@ class PotLimitProvider extends ChangeNotifier {
     try {
       // 소리 볼륨 설정
       await _audioPlayer.setVolume(0.7);
-      // 효과음 사운드 로드 (앱 시작 시 한 번만 로드)
-      await _audioPlayer.setSource(AssetSource('sounds/pot_action.mp3'));
+      // 효과음 사운드 로드 비활성화
+      // await _audioPlayer.setSource(AssetSource('sounds/pot_action.mp3'));
       debugPrint('오디오 플레이어 초기화 완료');
     } catch (e) {
       debugPrint('오디오 초기화 오류: $e');
@@ -70,6 +71,10 @@ class PotLimitProvider extends ChangeNotifier {
   
   /// 효과음 재생
   void _playSound(String soundName) async {
+    // 효과음 비활성화
+    return; // 모든 효과음 재생 비활성화
+
+    /*
     if (!soundEnabled) return;
     
     try {
@@ -95,6 +100,7 @@ class PotLimitProvider extends ChangeNotifier {
       debugPrint('효과음 재생 오류: $e');
       // 게임 플레이에 영향을 주지 않도록 아무 작업도 수행하지 않음
     }
+    */
   }
 
   @override

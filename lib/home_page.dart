@@ -467,33 +467,17 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
-        color: Colors.black.withOpacity(0.2),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              getText('madeBy'),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.9),
-                fontSize: isMobile ? 14 : 16,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 1.2,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Version 1.0.3 (${BUILD_TIMESTAMP})',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
-                fontSize: isMobile ? 12 : 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(
+          getText('madeBy') + ' | ' + 'Version 1.0.3',
+          textAlign: TextAlign.right,
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.7),
+            fontSize: isMobile ? 14 : 17,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 1.2,
+          ),
         ),
       ),
     );
