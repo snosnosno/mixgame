@@ -8,6 +8,12 @@ import 'dart:ui' as ui;
 // 앱 버전 정의
 const String APP_VERSION = '1.0.3';
 
+// 빌드 타임스탬프 (GitHub Actions에서 주입)
+final String BUILD_TIMESTAMP = const String.fromEnvironment(
+  'BUILD_TIMESTAMP',
+  defaultValue: 'local',
+);
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -15,6 +21,9 @@ void main() {
   if (kIsWeb) {
     debugPrint = (String? message, {int? wrapWidth}) {};
   }
+  
+  // 빌드 정보 출력
+  print('App version: $APP_VERSION, Build: $BUILD_TIMESTAMP');
   
   // Initialize language based on device locale
   final deviceLocale = ui.window.locale.languageCode;
