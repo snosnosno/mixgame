@@ -18,9 +18,9 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="팟 리밋 계산기 - Pot Limit 연습">
+  <meta name="description" content="PL OMAHA ?�습 - ?�자 맞추�?& Pot Limit 계산">
   
-  <!-- 캐시 제어 헤더 -->
+  <!-- 캐시 ?�어 ?�더 -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -28,33 +28,33 @@
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="POT 계산 연습">
+  <meta name="apple-mobile-web-app-title" content="PL OMAHA ?�습">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>POT 계산 연습</title>
+  <title>PL OMAHA ?�습</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- JavaScript 호환성 폴리필 -->
+  <!-- JavaScript ?�환???�리??-->
   <script>
-    // JavaScript 정수 나눗셈 폴리필
+    // JavaScript ?�수 ?�눗???�리??
     Math.trunc = Math.trunc || function(x) {
       return x < 0 ? Math.ceil(x) : Math.floor(x);
     };
 
-    // Dart의 ~/ 연산자를 JavaScript에서 올바르게 처리
+    // Dart??~/ ?�산?��? JavaScript?�서 ?�바르게 처리
     window.dartIntegerDivision = function(a, b) {
       return Math.floor(a / b);
     };
 
-    // 모듈로 연산 정확히 구현
+    // 모듈�??�산 ?�확??구현
     window.dartModulo = function(a, b) {
       return ((a % b) + b) % b;
     };
 
-    // 넘버링 연산 조정
+    // ?�버�??�산 조정
     Number.prototype.dartRoundUp = function(step) {
       var value = this.valueOf();
       var remainder = value % step;
@@ -65,7 +65,7 @@
 
   <script>
     // The value below is injected by flutter build, do not touch.
-    const serviceWorkerVersion = "2616702653";
+    const serviceWorkerVersion = ""3008046655"";
   </script>
   <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
@@ -73,46 +73,70 @@
 <body>
   <script>
     window.addEventListener('load', function(ev) {
-      // 캐시 강제 갱신을 위한 설정
+      // 캐시 강제 갱신???�한 ?�정
       window.applicationCacheEnabled = false;
 
-      // 브라우저 캐시 클리어 시도
+      // 브라?��? 캐시 ?�리???�도
       if ('caches' in window) {
         caches.keys().then(function(names) {
           for (let name of names) caches.delete(name);
         });
       }
 
-      // 메인 앱 로드
-      _flutter.loader.load({
-        serviceWorker: {
-          serviceWorkerVersion: serviceWorkerVersion,
-        },
-        onEntrypointLoaded: function(engineInitializer) {
-          engineInitializer.initializeEngine({
-            // 메모리 설정 최적화
-            useColorEmoji: true,
-            // 웹 성능 향상 설정
-            canvasKitMaximumSurfaces: 8
-          }).then(function(appRunner) {
-            appRunner.runApp();
-          });
-        }
-      });
+      // 메인 ??로드 - ??가지 방식 모두 지??
+      var loader = window._flutter.loader;
+      if (loader.loadEntrypoint) {
+        // ?�전 버전 Flutter 로더
+        loader.loadEntrypoint({
+          // Service worker disabled
+          onEntrypointLoaded: function(engineInitializer) {
+            engineInitializer.initializeEngine().then(function(appRunner) {
+              appRunner.runApp();
+            });
+          }
+        });
+      } else {
+        // 최신 버전 Flutter 로더
+        loader.load({
+          // Service worker disabled
+          onEntrypointLoaded: function(engineInitializer) {
+            engineInitializer.initializeEngine({
+              useColorEmoji: true,
+              canvasKitMaximumSurfaces: 8
+            }).then(function(appRunner) {
+              appRunner.runApp();
+            });
+          }
+        });
+      }
     });
   </script>
   
-  <!-- 캐시 무효화를 위한 타임스탬프 추가 -->
+  <!-- 캐시 무효?��? ?�한 ?�?�스?�프 추�? -->
   <script>
-    // 타임스탬프를 사용하여 main.dart.js 로드
+    // ?�?�스?�프�??�용?�여 main.dart.js 로드
     document.write('<script src="main.dart.js?v=' + new Date().getTime() + '"><\/script>');
   </script>
   
-  <!-- Flutter 디버그 모드 강제 해제 -->
+  <!-- Flutter ?�버�?모드 강제 ?�제 -->
   <script>
     window.flutterConfiguration = {
       useDebugExtension: false
     };
   </script>
+
+  <!-- 버전 ?�보 ?�시 -->
+  <div id="version-info" style="position: fixed; bottom: 5px; left: 5px; font-size: 10px; color: #666; z-index: 9999;">
+    v<span id="version-number">1.0.0</span>
+  </div>
+  <script>
+    // ?�비???�커 버전???�용?�여 버전 ?�보 ?�시
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        document.getElementById('version-number').textContent = serviceWorkerVersion || '1.0.0';
+      }, 2000);
+    });
+  </script>
 </body>
 </html>
+
