@@ -5,7 +5,7 @@
 *.swp
 .DS_Store
 .atom/
-.build/
+# .build/ # Flutter build/ is handled below
 .buildlog/
 .history
 .svn/
@@ -18,10 +18,15 @@ migrate_working_dir/
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+
+# Visual Studio
+.vs/
 
 # Flutter/Dart/Pub related
 **/doc/api/
@@ -32,6 +37,12 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+
+# Node modules
+/node_modules/
+
+# Root level last_build_id
+/.last_build_id
 
 # Symbolication related
 app.*.symbols
