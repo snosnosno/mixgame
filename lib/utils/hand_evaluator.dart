@@ -1,6 +1,6 @@
 import 'dart:math';
-import 'package:random_card/models/card.dart';
-import 'package:random_card/models/hand_rank.dart';
+import 'package:random_card_new/models/card.dart';
+import 'package:random_card_new/models/hand_rank.dart';
 
 class HandEvaluator {
   static String evaluateWinner(
@@ -41,11 +41,11 @@ class HandEvaluator {
         bestSecondaryRank = currentSecondaryRank;
         winnerIndex = i;
         bestHandName = currentBestHand;
-        winningHandDescription = getHandDescription(bestHandCards);
+        winnerHandDescription = getHandDescription(bestHandCards);
       }
     }
 
-    return '$bestHandName\n$winningHandDescription';
+    return '$bestHandName\n$winnerHandDescription';
   }
 
   static String getHandDescription(List<Card> cards) {

@@ -66,8 +66,8 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> with SingleTickerPr
     ]).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
     
     _colorAnimation = ColorTween(
-      begin: Colors.white.withOpacity(0.10),
-      end: Colors.amber.withOpacity(0.50),
+      begin: Colors.white.withAlpha((0.10 * 255).round()),
+      end: Colors.amber.withAlpha((0.50 * 255).round()),
     ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
   }
 
@@ -127,13 +127,13 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> with SingleTickerPr
                 decoration: BoxDecoration(
                   color: widget.showPotAnimation && widget.potAnimationPlayerId == widget.index 
                       ? _colorAnimation.value 
-                      : Colors.white.withOpacity(0.10),
+                      : Colors.white.withAlpha((0.10 * 255).round()),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
                       color: widget.showPotAnimation && widget.potAnimationPlayerId == widget.index
-                          ? Colors.amber.withOpacity(0.5)
-                          : Colors.black.withOpacity(0.18),
+                          ? Colors.amber.withAlpha((0.5 * 255).round())
+                          : Colors.black.withAlpha((0.18 * 255).round()),
                       blurRadius: widget.showPotAnimation && widget.potAnimationPlayerId == widget.index
                           ? 18
                           : 10,
@@ -142,7 +142,7 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> with SingleTickerPr
                   ],
                   border: Border.all(
                     color: widget.showPotAnimation && widget.potAnimationPlayerId == widget.index
-                        ? Colors.amber.withOpacity(0.8)
+                        ? Colors.amber.withAlpha((0.8 * 255).round())
                         : Colors.transparent,
                     width: widget.showPotAnimation && widget.potAnimationPlayerId == widget.index
                         ? 2
@@ -198,11 +198,11 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> with SingleTickerPr
         vertical: widget.isSmallScreen ? 4 : 6
       ),
       decoration: BoxDecoration(
-        color: Colors.amber.withOpacity(0.8),
+        color: Colors.amber.withAlpha((0.8 * 255).round()),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.amber.withOpacity(0.5),
+            color: Colors.amber.withAlpha((0.5 * 255).round()),
             blurRadius: 8,
             spreadRadius: 2,
           ),
@@ -229,7 +229,7 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> with SingleTickerPr
         vertical: widget.isSmallScreen ? 3 : 5
       ),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.35),
+        color: Colors.black.withAlpha((0.35 * 255).round()),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(

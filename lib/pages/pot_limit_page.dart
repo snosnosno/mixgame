@@ -113,9 +113,9 @@ class _PotLimitGameContent extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withAlpha((0.1 * 255).round()),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.withOpacity(0.5)),
+                    border: Border.all(color: Colors.grey.withAlpha((0.5 * 255).round())),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,9 +138,9 @@ class _PotLimitGameContent extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withAlpha((0.1 * 255).round()),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.withOpacity(0.5)),
+                    border: Border.all(color: Colors.grey.withAlpha((0.5 * 255).round())),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,9 +202,9 @@ class _PotLimitGameContent extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withAlpha((0.1 * 255).round()),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.amber.withOpacity(0.5)),
+                    border: Border.all(color: Colors.amber.withAlpha((0.5 * 255).round()), width: 2),
                   ),
                   child: Text(
                     details['explanation'],
@@ -343,10 +343,10 @@ class _PotLimitGameContent extends StatelessWidget {
                                   margin: const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 4),
                                   padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.15),
+                                    color: Colors.white.withAlpha((0.15 * 255).round()),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                      color: Colors.white.withOpacity(0.3),
+                                      color: Colors.white.withAlpha((0.3 * 255).round()),
                                       width: 1,
                                     ),
                                   ),
@@ -366,7 +366,7 @@ class _PotLimitGameContent extends StatelessWidget {
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: provider.useRandomBlinds 
                                             ? Colors.amber 
-                                            : Colors.black.withOpacity(0.5),
+                                            : Colors.black.withAlpha((0.5 * 255).round()),
                                           foregroundColor: Colors.white,
                                           shape: RoundedRectangleBorder(
                                             borderRadius: BorderRadius.circular(12),
@@ -401,7 +401,7 @@ class _PotLimitGameContent extends StatelessWidget {
                                             width: 80,
                                             padding: const EdgeInsets.symmetric(horizontal: 4),
                                             decoration: BoxDecoration(
-                                              color: Colors.white.withOpacity(0.2),
+                                              color: Colors.white.withAlpha((0.2 * 255).round()),
                                               borderRadius: BorderRadius.circular(8),
                                             ),
                                             child: TextField(
@@ -433,7 +433,7 @@ class _PotLimitGameContent extends StatelessWidget {
                                             width: 80,
                                             padding: const EdgeInsets.symmetric(horizontal: 4),
                                             decoration: BoxDecoration(
-                                              color: Colors.white.withOpacity(0.2),
+                                              color: Colors.white.withAlpha((0.2 * 255).round()),
                                               borderRadius: BorderRadius.circular(8),
                                             ),
                                             child: TextField(
@@ -458,7 +458,7 @@ class _PotLimitGameContent extends StatelessWidget {
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: !provider.useRandomBlinds 
                                             ? Colors.amber 
-                                            : Colors.black.withOpacity(0.5),
+                                            : Colors.black.withAlpha((0.5 * 255).round()),
                                           foregroundColor: Colors.white,
                                           shape: RoundedRectangleBorder(
                                             borderRadius: BorderRadius.circular(12),
@@ -482,7 +482,7 @@ class _PotLimitGameContent extends StatelessWidget {
                                 // 계산법 보기 버튼
                                 ElevatedButton.icon(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.amber.withOpacity(0.7),
+                                    backgroundColor: Colors.amber.withAlpha((0.7 * 255).round()),
                                     foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(18),
@@ -505,7 +505,7 @@ class _PotLimitGameContent extends StatelessWidget {
                                 // 게임 시작 버튼
                                 ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.deepPurpleAccent,
+                                    backgroundColor: Colors.deepPurpleAccent.withAlpha((0.65 * 255).round()),
                                     foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(18),
@@ -559,7 +559,7 @@ class _PotLimitGameContent extends StatelessWidget {
                                   Container(
                                     margin: const EdgeInsets.only(right: 10),
                                     decoration: BoxDecoration(
-                                      color: Colors.amber.withOpacity(0.65),
+                                      color: Colors.amber.withAlpha((0.65 * 255).round()),
                                       borderRadius: BorderRadius.circular(18),
                                     ),
                                     child: ElevatedButton(
@@ -588,7 +588,7 @@ class _PotLimitGameContent extends StatelessWidget {
                                   // 다음 게임 버튼
                                   Container(
                                     decoration: BoxDecoration(
-                                      color: Colors.deepPurpleAccent.withOpacity(0.65),
+                                      color: Colors.deepPurpleAccent.withAlpha((0.65 * 255).round()),
                                       borderRadius: BorderRadius.circular(18),
                                     ),
                                     child: ElevatedButton(
@@ -626,7 +626,7 @@ class _PotLimitGameContent extends StatelessWidget {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.4),
+                                color: Colors.black.withAlpha((0.4 * 255).round()),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -668,7 +668,7 @@ class _CopyrightText extends StatelessWidget {
     return Text(
       'made by SNO',
       style: TextStyle(
-        color: Colors.white.withOpacity(0.7),
+        color: Colors.white.withAlpha((0.7 * 255).round()),
         fontSize: 17,
         fontWeight: FontWeight.w500,
         letterSpacing: 1.2,

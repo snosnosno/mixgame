@@ -56,7 +56,7 @@ class ReplayRoundWidget extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.7),
+            color: Colors.black.withAlpha((0.7 * 255).round()),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
@@ -106,7 +106,7 @@ class ReplayLogWidget extends StatelessWidget {
     return Container(
       height: 120,
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.5),
+        color: Colors.black.withAlpha((0.5 * 255).round()),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(

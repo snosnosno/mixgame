@@ -217,7 +217,7 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.1),
+                    color: Colors.amber.withAlpha((0.1 * 255).round()),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.amber),
                   ),
@@ -273,9 +273,9 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withAlpha((0.1 * 255).round()),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.withOpacity(0.5)),
+            border: Border.all(color: Colors.grey.withAlpha((0.5 * 255).round())),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -685,7 +685,7 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
                     color: remainingTime <= 10 ? Colors.redAccent : Colors.white,
                     shadows: [
                       Shadow(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withAlpha((0.3 * 255).round()),
                         offset: const Offset(1, 1),
                         blurRadius: 2,
                       ),
@@ -735,20 +735,20 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
                       curve: Curves.easeInOut,
                       decoration: BoxDecoration(
                         color: selIdx == index
-                            ? Colors.deepPurpleAccent.withOpacity(0.18)
-                            : Colors.white.withOpacity(0.13),
+                            ? Colors.deepPurpleAccent.withAlpha(((0.18) * 255).round())
+                            : Colors.white.withAlpha(((0.13) * 255).round()),
                             borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.18),
+                            color: Colors.black.withAlpha((0.18 * 255).round()),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
                         ],
                         border: Border.all(
                           color: selIdx == index
-                              ? Colors.deepPurpleAccent
-                              : Colors.white.withOpacity(0.18),
+                              ? Colors.deepPurpleAccent.withAlpha(((0.18) * 255).round())
+                              : Colors.white.withAlpha(((0.18) * 255).round()),
                           width: selIdx == index ? 2.5 : 1.2,
                         ),
                       ),
@@ -852,7 +852,7 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
+                    color: Colors.black.withAlpha((0.7 * 255).round()),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
@@ -879,7 +879,7 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
               child: Container(
                 height: 120,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withAlpha((0.5 * 255).round()),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -932,7 +932,7 @@ class _WinnerGamePageState extends State<WinnerGamePage> {
             child: Text(
               'made by SNO',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withAlpha((0.7 * 255).round()),
                 fontSize: 17,
                 fontWeight: FontWeight.w500,
                 letterSpacing: 1.2,

@@ -135,7 +135,7 @@ class BettingRound {
     // 콜 금액 = 최대 베팅액
     int callAmount = getCallAmount();
     
-    print('팟 리밋 계산 - 현재 팟: $currentPot, 콜 금액: $callAmount, 현재 플레이어 베팅: ${currentPlayer.bet}');
+    // print('팟 리밋 계산 - 현재 팟: $currentPot, 콜 금액: $callAmount, 현재 플레이어 베팅: ${currentPlayer.bet}');
     
     // 팟 리밋 계산: 현재 팟 + (콜 금액 * 2)
     int potLimit = currentPot + (callAmount * 2);
@@ -169,11 +169,11 @@ class BettingRound {
   int performAction(String action, [int? amount]) {
     int step = getStep(getSmallBlindAmount());
     int prevBet = currentPlayer.bet;
-    print('액션 시작 - currentBet: $currentBet, 액션: $action, 금액: $amount, 현재 플레이어 베팅: $prevBet');
+    // print('액션 시작 - currentBet: $currentBet, 액션: $action, 금액: $amount, 현재 플레이어 베팅: $prevBet');
     
     if (action == 'setBet' && amount != null) {
       int diff = amount - currentPlayer.bet;
-      print('setBet 처리 - 차이: $diff, 최종 베팅: $amount');
+      // print('setBet 처리 - 차이: $diff, 최종 베팅: $amount');
       
       currentPlayer.bet = amount;
       currentPlayer.chips -= diff;
@@ -183,7 +183,7 @@ class BettingRound {
       if (amount > currentBet) {
         // 마지막 레이즈 금액도 업데이트
         lastRaiseAmount = amount - currentBet;
-        print('베팅 증가 감지 - 레이즈 금액: $lastRaiseAmount');
+        // print('베팅 증가 감지 - 레이즈 금액: $lastRaiseAmount');
         
         if (lastRaiseAmount >= lastValidRaiseAmount) {
           // 유효한 레이즈인 경우
@@ -192,7 +192,7 @@ class BettingRound {
         
         // 현재 베팅 금액 업데이트
         currentBet = amount;
-        print('currentBet 업데이트: $currentBet');
+        // print('currentBet 업데이트: $currentBet');
       }
       
       nextPlayer();
@@ -210,7 +210,7 @@ class BettingRound {
         // 실제 플레이어가 추가로 베팅할 금액
         int actualCallDifference = getPlayerCallDifference();
         
-        print('콜 액션 - 팟 계산용 콜 금액: $callAmount, 실제 추가 베팅: $actualCallDifference, 현재 베팅: ${currentPlayer.bet}');
+        // print('콜 액션 - 팟 계산용 콜 금액: $callAmount, 실제 추가 베팅: $actualCallDifference, 현재 베팅: ${currentPlayer.bet}');
         
         currentPlayer.chips -= actualCallDifference;
         currentPlayer.bet = currentPlayer.bet + actualCallDifference;
@@ -231,20 +231,20 @@ class BettingRound {
         int raiseAmount = finalBet - currentPlayer.bet;
         int minimumRaise = getMinimumRaise();
         
-        print('레이즈 처리 - 금액: $amount, 최종 베팅: $finalBet, 레이즈 금액: $raiseAmount, 최소 레이즈: $minimumRaise');
+        // print('레이즈 처리 - 금액: $amount, 최종 베팅: $finalBet, 레이즈 금액: $raiseAmount, 최소 레이즈: $minimumRaise');
         
         if (finalBet < minimumRaise) {
           if (finalBet == maxBet) {
             lastRaiseAmount = raiseAmount;
-            print('언더레이즈(올인) - 레이즈 금액: $lastRaiseAmount');
+            // print('언더레이즈(올인) - 레이즈 금액: $lastRaiseAmount');
           } else {
-            print('유효하지 않은 레이즈, 거부');
+            // print('유효하지 않은 레이즈, 거부');
             return 0;
           }
         } else {
           lastRaiseAmount = raiseAmount;
           lastValidRaiseAmount = raiseAmount;
-          print('유효한 레이즈 - 레이즈 금액: $lastRaiseAmount, 유효 레이즈: $lastValidRaiseAmount');
+          // print('유효한 레이즈 - 레이즈 금액: $lastRaiseAmount, 유효 레이즈: $lastValidRaiseAmount');
         }
         currentPlayer.chips -= raiseAmount;
         currentPlayer.bet = finalBet;
@@ -255,7 +255,7 @@ class BettingRound {
         // 현재 베팅 금액 업데이트
         if (finalBet > currentBet) {
           currentBet = finalBet;
-          print('레이즈 후 currentBet 업데이트: $currentBet');
+          // print('레이즈 후 currentBet 업데이트: $currentBet');
         }
         nextPlayer();
         break;

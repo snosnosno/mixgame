@@ -19,8 +19,14 @@ void main() {
     debugPrint = (String? message, {int? wrapWidth}) {};
   }
   
-  // 빌드 정보 출력
-  print('App version: $BUILD_TIMESTAMP');
+  // 앱 시작 시 언어 설정 (필요한 경우)
+  // AppLanguage.setLanguage(true); // 예: 한국어로 시작
+  // print('Current language is Korean: ${AppLanguage.isKorean}'); // 주석 처리
+
+  // 빌드 타임스탬프 출력 (웹에서만)
+  if (kIsWeb) {
+    // print('App version: $_appVersion, Build timestamp: $BUILD_TIMESTAMP'); // 주석 처리
+  }
   
   // Initialize language based on device locale
   final deviceLocale = ui.window.locale.languageCode;

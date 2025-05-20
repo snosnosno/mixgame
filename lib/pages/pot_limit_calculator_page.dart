@@ -331,7 +331,7 @@ class _PotLimitCalculatorPageState extends State<PotLimitCalculatorPage> with Si
         bottom: TabBar(
           controller: _tabController,
           labelColor: Colors.white,
-          unselectedLabelColor: Colors.white.withOpacity(0.7),
+          unselectedLabelColor: Colors.white.withAlpha((0.7 * 255).round()),
           indicatorColor: Colors.amber,
           tabs: [
             Tab(text: AppLanguage.isKorean ? '프리플랍' : 'Preflop'),
@@ -470,7 +470,7 @@ class _PotLimitCalculatorPageState extends State<PotLimitCalculatorPage> with Si
                     ElevatedButton(
                       onPressed: _addPreflopBet,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.amber,
+                        backgroundColor: Colors.amber.withAlpha((0.9 * 255).round()),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -612,7 +612,7 @@ class _PotLimitCalculatorPageState extends State<PotLimitCalculatorPage> with Si
                     ElevatedButton(
                       onPressed: _addPostflopBet,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.amber,
+                        backgroundColor: Colors.amber.withAlpha((0.9 * 255).round()),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),

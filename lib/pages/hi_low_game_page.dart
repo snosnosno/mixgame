@@ -433,13 +433,6 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
       }
     }
     
-    // 디버깅 출력 - 각 플레이어의 로우 핸드 정보
-    for (int i = 0; i < playerLowRanks.length; i++) {
-      if (playerLowRanks[i] != null) {
-        print('Player ${i+1} 로우 핸드: ${playerLowRanks[i]!.name}, 값: ${playerLowRanks[i]!.value}');
-      }
-    }
-    
     // 로우 핸드가 있으면 승자 결정 (동점자 모두 승자로 추가)
     if (isLowHand) {
       // 최고의 로우 핸드 찾기
@@ -695,7 +688,7 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
                         decoration: BoxDecoration(
                           color: numberOfPlayers == count
                               ? Colors.amber
-                              : Colors.white.withOpacity(0.2),
+                              : Colors.white.withAlpha((0.2 * 255).round()),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
@@ -802,7 +795,7 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
             margin: EdgeInsets.symmetric(vertical: 8),
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelectingHigh ? Colors.amber.withOpacity(0.7) : Colors.green.withOpacity(0.7),
+              color: isSelectingHigh ? Colors.amber.withAlpha((0.7 * 255).round()) : Colors.green.withAlpha((0.7 * 255).round()),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -822,7 +815,7 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
             margin: EdgeInsets.symmetric(vertical: 4),
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.7),
+              color: Colors.blue.withAlpha((0.7 * 255).round()),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -841,16 +834,16 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
             margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             padding: EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withAlpha((0.15 * 255).round()),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withAlpha((0.2 * 255).round()),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 3,
+                  color: Colors.black.withAlpha((0.2 * 255).round()),
+                  blurRadius: 4,
                   offset: Offset(0, 2),
                 ),
               ],
@@ -904,7 +897,7 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withAlpha((0.1 * 255).round()),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
                           color: borderColor,
@@ -1025,8 +1018,8 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
         borderRadius: BorderRadius.circular(size * 0.1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 3,
+            color: Colors.black.withAlpha((0.2 * 255).round()),
+            blurRadius: 4,
             offset: Offset(1, 1),
           ),
         ],
@@ -1124,7 +1117,7 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withAlpha((0.15 * 255).round()),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
@@ -1143,7 +1136,7 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withAlpha((0.15 * 255).round()),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
@@ -1186,7 +1179,7 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.2),
+                  color: Colors.amber.withAlpha((0.2 * 255).round()),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
@@ -1215,9 +1208,9 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
             margin: EdgeInsets.symmetric(vertical: 4, horizontal: 16),
             padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withAlpha((0.2 * 255).round()),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+              border: Border.all(color: Colors.white.withAlpha((0.3 * 255).round()), width: 1),
             ),
             child: Text(
               replayingRound!.winnerText,
@@ -1300,9 +1293,9 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
               }
               
               // 플레이어 카드 컨테이너 색상 결정
-              Color containerColor = Colors.white.withOpacity(0.15);
+              Color containerColor = Colors.white.withAlpha((0.15 * 255).round());
               if (isHighCorrect || isLowCorrect) {
-                containerColor = Colors.white.withOpacity(0.25);
+                containerColor = Colors.white.withAlpha((0.25 * 255).round());
               }
               
               // 여러 Low 핸드 승자가 있는 경우 표시
@@ -1317,14 +1310,14 @@ class _HiLowGamePageState extends State<HiLowGamePage> {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 5,
+                      color: Colors.black.withAlpha((0.1 * 255).round()),
+                      blurRadius: 4,
                       offset: Offset(0, 2),
                     ),
                   ],
                   border: Border.all(
                     color: (isHighCorrect || isLowCorrect) ? 
-                           Colors.amber.withOpacity(0.5) : 
+                           Colors.amber.withAlpha((0.5 * 255).round()) : 
                            Colors.transparent,
                     width: 2,
                   ),

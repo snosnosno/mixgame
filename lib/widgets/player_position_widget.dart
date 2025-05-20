@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:random_card/models/player.dart';
+import 'package:random_card_new/models/player.dart';
 
 class PlayerPositionWidget extends StatelessWidget {
   final Player player;
@@ -37,8 +37,8 @@ class PlayerPositionWidget extends StatelessWidget {
         height: 160,
         decoration: BoxDecoration(
           color: player.isFolded 
-              ? Colors.black.withOpacity(0.3) 
-              : Colors.white.withOpacity(0.1),
+              ? Colors.black.withAlpha((0.3 * 255).round()) 
+              : Colors.white.withAlpha((0.1 * 255).round()),
           shape: BoxShape.circle,
           border: Border.all(
             color: _getBorderColor(),
@@ -51,7 +51,7 @@ class PlayerPositionWidget extends StatelessWidget {
             Text(
               'Player ${index + 1}',
               style: TextStyle(
-                color: player.isFolded ? Colors.white.withOpacity(0.5) : Colors.white,
+                color: player.isFolded ? Colors.white.withAlpha((0.5 * 255).round()) : Colors.white,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -68,7 +68,7 @@ class PlayerPositionWidget extends StatelessWidget {
             Text(
               initialChips.toString(),
               style: TextStyle(
-                color: player.isFolded ? Colors.white.withOpacity(0.5) : Colors.white,
+                color: player.isFolded ? Colors.white.withAlpha((0.5 * 255).round()) : Colors.white,
                 fontSize: screenWidth * (screenWidth < 500 ? 0.035 : 0.045),
                 fontWeight: FontWeight.bold,
                 fontFamily: 'RobotoMono',
@@ -86,7 +86,7 @@ class PlayerPositionWidget extends StatelessWidget {
   Color _getBorderColor() {
     if (index == 0) return Colors.yellow;
     if (index == 1) return Colors.red;
-    return Colors.white.withOpacity(0.3);
+    return Colors.white.withAlpha((0.3 * 255).round());
   }
 
   Widget _buildPositionInfo() {
@@ -109,7 +109,7 @@ class PlayerPositionWidget extends StatelessWidget {
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.yellow.withOpacity(0.8),
+        color: Colors.yellow.withAlpha((0.8 * 255).round()),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -128,7 +128,7 @@ class PlayerPositionWidget extends StatelessWidget {
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.35),
+        color: Colors.black.withAlpha((0.35 * 255).round()),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(

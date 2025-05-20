@@ -391,7 +391,7 @@ class _HomePageState extends State<HomePage> {
               child: Material(
                 elevation: 4,
                 borderRadius: BorderRadius.circular(12),
-                color: Colors.amber.withOpacity(0.8),
+                color: Colors.amber.withAlpha((0.8 * 255).round()),
                 child: InkWell(
                   onTap: () => _showLanguageSelector(context),
                   borderRadius: BorderRadius.circular(12),
@@ -433,7 +433,7 @@ class _HomePageState extends State<HomePage> {
                           color: Colors.white,
                           shadows: [
                             Shadow(
-                              color: Colors.black.withOpacity(0.3),
+                              color: Colors.black.withAlpha((0.3 * 255).round()),
                               offset: const Offset(2, 2),
                               blurRadius: 4,
                             ),
@@ -490,7 +490,7 @@ class _HomePageState extends State<HomePage> {
           getText('madeBy') + ' | Version $_appVersion+$_buildNumber',
           textAlign: TextAlign.right,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
+            color: Colors.white.withAlpha((0.7 * 255).round()),
             fontSize: isMobile ? 14 : 17,
             fontWeight: FontWeight.w500,
             letterSpacing: 1.2,
@@ -522,7 +522,7 @@ class _HomePageState extends State<HomePage> {
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withAlpha((0.2 * 255).round()),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
@@ -575,11 +575,11 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.7),
+                color: Colors.amber.withAlpha((0.7 * 255).round()),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withAlpha((0.1 * 255).round()),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),

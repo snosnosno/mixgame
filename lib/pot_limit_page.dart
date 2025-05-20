@@ -1281,32 +1281,65 @@ class _PotLimitPageState extends State<PotLimitPage> {
             left: 0,
             right: 0,
             child: Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.deepPurpleAccent.withOpacity(0.65),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFB300),
                       borderRadius: BorderRadius.circular(18),
                     ),
-                    elevation: 0,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isSmallScreen ? 24 : 32, 
-                      vertical: isSmallScreen ? 14 : 18
-                    ),
-                    textStyle: TextStyle(
-                      fontSize: isSmallScreen ? 16 : 18, 
-                      fontWeight: FontWeight.bold
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        elevation: 0,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isSmallScreen ? 20 : 28,
+                          vertical: isSmallScreen ? 14 : 18
+                        ),
+                        textStyle: TextStyle(
+                          fontSize: isSmallScreen ? 15 : 17,
+                          fontWeight: FontWeight.bold
+                        ),
+                      ),
+                      onPressed: () => _showPotCalculationGuide(context),
+                      child: Text(getText('showCalculation')),
                     ),
                   ),
-                  onPressed: startNewGame,
-                  child: Text(getText('nextGame')),
-                ),
+                  const SizedBox(width: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.deepPurpleAccent,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        elevation: 0,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isSmallScreen ? 24 : 32, 
+                          vertical: isSmallScreen ? 14 : 18
+                        ),
+                        textStyle: TextStyle(
+                          fontSize: isSmallScreen ? 16 : 18, 
+                          fontWeight: FontWeight.bold
+                        ),
+                      ),
+                      onPressed: startNewGame,
+                      child: Text(getText('nextGame')),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

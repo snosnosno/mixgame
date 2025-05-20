@@ -1,7 +1,7 @@
 import 'dart:math';
-import 'package:random_card/models/player.dart';
-import 'package:random_card/models/pot.dart';
-import 'package:random_card/models/betting_round.dart';
+import 'package:random_card_new/models/player.dart';
+import 'package:random_card_new/models/pot.dart';
+import 'package:random_card_new/models/betting_round.dart';
 
 class PlayerActionManager {
   final Random random = Random();

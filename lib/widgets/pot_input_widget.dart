@@ -18,11 +18,11 @@ class PotInputWidget extends StatelessWidget {
       child: Container(
         width: 300,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.65),
+          color: Colors.white.withAlpha((0.65 * 255).round()),
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withAlpha((0.1 * 255).round()),
               blurRadius: 6,
               spreadRadius: 1,
             ),
@@ -119,7 +119,7 @@ class NextGameButton extends StatelessWidget {
       child: Center(
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.deepPurpleAccent.withOpacity(0.65),
+            color: Colors.deepPurpleAccent.withAlpha((0.65 * 255).round()),
             borderRadius: BorderRadius.circular(18),
           ),
           child: ElevatedButton(

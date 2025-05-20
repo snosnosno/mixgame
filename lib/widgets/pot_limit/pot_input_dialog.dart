@@ -105,7 +105,7 @@ class _PotInputDialogState extends State<PotInputDialog> with SingleTickerProvid
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
-                color: Colors.black.withOpacity(0.7),
+                color: Colors.black.withAlpha((0.7 * 255).round()),
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
@@ -122,69 +122,78 @@ class _PotInputDialogState extends State<PotInputDialog> with SingleTickerProvid
                       ),
                       const SizedBox(height: 20),
                       
-                      // 입력 필드
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.amber.withOpacity(0.5)),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 15),
-                          child: TextField(
-                            controller: widget.controller,
-                            focusNode: _focusNode,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: false, 
-                              signed: false
-                            ),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'RobotoMono',
-                            ),
-                            decoration: const InputDecoration(
-                              hintText: 'ex) 1600',
-                              hintStyle: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 18,
+                      // 입력 필드와 제출 버튼을 Row로 묶음
+                      Row(
+                        children: [
+                          // 입력 필드
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withAlpha((0.7 * 255).round()),
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                              border: InputBorder.none,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 15),
+                                child: TextField(
+                                  controller: widget.controller,
+                                  focusNode: _focusNode,
+                                  keyboardType: const TextInputType.numberWithOptions(
+                                    decimal: false, 
+                                    signed: false
+                                  ),
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ],
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'RobotoMono',
+                                  ),
+                                  decoration: const InputDecoration(
+                                    hintText: 'ex) 1600',
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 18,
+                                    ),
+                                    border: InputBorder.none,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  autofocus: false,
+                                  onEditingComplete: _handleSubmit,
+                                  onSubmitted: (_) => _handleSubmit(),
+                                ),
+                              ),
                             ),
-                            textAlign: TextAlign.center,
-                            autofocus: false,
-                            onEditingComplete: _handleSubmit,
-                            onSubmitted: (_) => _handleSubmit(),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      
-                      // 제출 버튼
-                      ElevatedButton(
-                        onPressed: _handleSubmit,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.amber,
-                          foregroundColor: Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                          const SizedBox(width: 12), // 입력 필드와 버튼 사이 간격
+                          
+                          // 제출 버튼
+                          ElevatedButton(
+                            onPressed: _handleSubmit,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.amber,
+                              foregroundColor: Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: widget.isSmallScreen ? 20 : 30,
+                                vertical: widget.isSmallScreen ? 12 : 17, // TextField 높이와 유사하게 조정
+                              ),
+                              // 버튼의 최소 높이를 TextField와 비슷하게 맞추기 위해 추가
+                              minimumSize: Size(0, widget.isSmallScreen ? 48 : 60), // TextField의 contentPadding + fontSize 고려
+                            ),
+                            child: Text(
+                              getText('submit'),
+                              style: TextStyle(
+                                fontSize: widget.isSmallScreen ? 16 : 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: widget.isSmallScreen ? 20 : 30,
-                            vertical: widget.isSmallScreen ? 10 : 15,
-                          ),
-                        ),
-                        child: Text(
-                          getText('submit'),
-                          style: TextStyle(
-                            fontSize: widget.isSmallScreen ? 16 : 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
