@@ -33,7 +33,7 @@ jobs:
 
       - name: Clean Flutter
         run: flutter clean
-        
+          
       - name: Get dependencies
         run: flutter pub get
         
@@ -58,7 +58,7 @@ jobs:
           sed -i 's/<script src="main.dart.js"/<script src="main.dart.js?v=${{ env.BUILD_TIMESTAMP }}"/' build/web/index.html
           
           echo "Updated files with timestamp: ${{ env.BUILD_TIMESTAMP }}"
-          
+        
       - name: Create clean directory for deployment
         run: |
           mkdir -p gh-pages-deploy
@@ -93,6 +93,6 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v4 
         with:
           timeout: 600000 # 타임아웃 증가 (10분) 

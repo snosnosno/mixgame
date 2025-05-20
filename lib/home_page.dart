@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'pages/winner_game_page.dart';
 import 'pages/pot_limit_page.dart';
 import 'pages/pot_limit_calculator_page.dart';
@@ -220,8 +221,25 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  String _appVersion = '...'; // 초기값
+  String _buildNumber = '...'; // 초기값
+
   // getText 함수를 AppLanguage에서 가져옵니다
   String getText(String key) => AppLanguage.getText(key);
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersionInfo();
+  }
+
+  Future<void> _loadVersionInfo() async {
+    final PackageInfo info = await PackageInfo.fromPlatform();
+    setState(() {
+      _appVersion = info.version;
+      _buildNumber = info.buildNumber;
+    });
+  }
 
   void _toggleLanguage() {
     setState(() {
@@ -470,7 +488,7 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Text(
-          getText('madeBy') + ' | ' + 'Version 1.0.3',
+          getText('madeBy') + ' | Version $_appVersion+$_buildNumber',
           textAlign: TextAlign.right,
           style: TextStyle(
             color: Colors.white.withOpacity(0.7),
