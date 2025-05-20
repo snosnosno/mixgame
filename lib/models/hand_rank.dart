@@ -62,7 +62,7 @@ class HandRank {
         else if (highestCardIndexInStraight == poker.Rank.jack.index) highCardName = 'J';
         else if (highestCardIndexInStraight == poker.Rank.ten.index) highCardName = 'T';
         else highCardName = (highestCardIndexInStraight + 2).toString(); // 2는 two.index + 2
-
+        
         straightName = '$highCardName-high Straight';
       }
       return HandRank(5, straightName, sortedCards, _getStraightRankValue(sortedCards));
@@ -102,10 +102,10 @@ class HandRank {
   static int _getStraightRankValue(List<poker.Card> sortedCards) {
     var ranks = sortedCards.map((c) => c.rank.index).toList();
     // A-5 스트레이트 (Wheel)의 경우, Ace는 낮은 것으로 간주되므로, 5가 가장 높은 카드
-    bool isWheel = ranks.contains(poker.Rank.ace.index) &&
+      bool isWheel = ranks.contains(poker.Rank.ace.index) &&
                    ranks.contains(poker.Rank.five.index) &&
                    ranks.contains(poker.Rank.four.index) &&
-                   ranks.contains(poker.Rank.three.index) &&
+                      ranks.contains(poker.Rank.three.index) &&
                    ranks.contains(poker.Rank.two.index);
     if (isWheel) {
       return poker.Rank.five.index; // 휠 스트레이트의 탑은 5
